@@ -422,16 +422,15 @@
 
         try {
             document.getElementById("loadingMessage").style.display = "block";
-            // Hinweis: Falls du für Team 1 eine eigene Tabelle nutzt, hier anpassen (z.B. 'spieltage_t1')
             const { data: spieltageData, error } = await supabaseClient
-                .from('spieltage')
-                .select(`*, matches (*, scoring_stats (*))`)
+                .from('spieltage_t1')
+                .select(`*, matches_t1 (*, scoring_stats_t1 (*))`)
                 .order('spieltag_nummer', { ascending: false });
 
             if (error) throw error;
 
             if (!spieltageData || spieltageData.length === 0) {
-                document.getElementById("loadingMessage").innerHTML = "⚠️ Keine Daten in Supabase vorhanden. Nutze den Admin-Login!";
+                document.getElementById("loadingMessage").innerHTML = "⚠️ Keine Daten für Team 1 in Supabase vorhanden. Nutze den Admin-Login!";
                 if(btn) btn.textContent = "🔄 Aktualisieren";
                 return;
             }
@@ -476,13 +475,13 @@
             }
 
             let st = spieltageMap[sNum];
-            let matches = stRow.matches || [];
+            let matches = stRow.matches_t1 || [];
 
             matches.forEach(m => {
                 let blockName = m.block_name || "1. Block";
                 if (!st.bloecke[blockName]) st.bloecke[blockName] = [];
 
-                let scoring = (m.scoring_stats && m.scoring_stats.length > 0) ? m.scoring_stats[0] : { score_60: 0, score_80: 0, score_100: 0, score_140: 0, score_180: 0, high_finish: 0 };
+                let scoring = (m.scoring_stats_t1 && m.scoring_stats_t1.length > 0) ? m.scoring_stats_t1[0] : { score_60: 0, score_80: 0, score_100: 0, score_140: 0, score_180: 0, high_finish: 0 };
 
                 let matchObj = {
                     id: m.id, spieler: m.spieler_kapellen, gegner: m.gegner_name,
@@ -706,29 +705,29 @@
         let highFinish = parseInt(document.getElementById("highFinish").value) || 0;
 
         try {
-            let { data: existingSt } = await supabaseClient.from('spieltage').select('id').eq('spieltag_nummer', sNum).single();
+            let { data: existingSt } = await supabaseClient.from('spieltage_t1').select('id').eq('spieltag_nummer', sNum).single();
             let spieltagId;
             if (!existingSt) {
-                let { data: newSt, error: stErr } = await supabaseClient.from('spieltage').insert([{ spieltag_nummer: sNum, datum: datum, gegner_team: gegnerTeam, endergebnis: endstand }]).select().single();
+                let { data: newSt, error: stErr } = await supabaseClient.from('spieltage_t1').insert([{ spieltag_nummer: sNum, datum: datum, gegner_team: gegnerTeam, endergebnis: endstand }]).select().single();
                 if (stErr) throw stErr;
                 spieltagId = newSt.id;
             } else {
                 spieltagId = existingSt.id;
-                await supabaseClient.from('spieltage').update({ endergebnis: endstand, datum: datum, gegner_team: gegnerTeam }).eq('id', spieltagId);
+                await supabaseClient.from('spieltage_t1').update({ endergebnis: endstand, datum: datum, gegner_team: gegnerTeam }).eq('id', spieltagId);
             }
 
-            let { data: newMatch, error: mErr } = await supabaseClient.from('matches').insert([{
+            let { data: newMatch, error: mErr } = await supabaseClient.from('matches_t1').insert([{
                 spieltag_id: spieltagId, block_name: fullBlockName, spieler_kapellen: spielerKap,
                 gegner_name: gegnerName, ergebnis: ergebnis, avg: avg ? parseFloat(avg) : null, darts: darts
             }]).select().single();
             if (mErr) throw mErr;
 
-            let { error: sErr } = await supabaseClient.from('scoring_stats').insert([{
+            let { error: sErr } = await supabaseClient.from('scoring_stats_t1').insert([{
                 match_id: newMatch.id, score_60: s60, score_80: s80, score_100: s100, score_140: s140, score_180: s180, high_finish: highFinish
             }]);
             if (sErr) throw sErr;
 
-            alert("✓ Match & Scoring-Werte erfolgreich gespeichert!");
+            alert("✓ Match & Scoring-Werte erfolgreich für Team 1 gespeichert!");
             document.getElementById("newMatchForm").reset();
             initAdminDropdowns();
             onBlockChanged();
