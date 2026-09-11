@@ -486,7 +486,7 @@
 
                 st.bloecke[blockName].push(matchObj);
                 let beteiligte = m.spieler_kapellen.split("/").map(s => s.trim());
-                beteiligigte.forEach(subP => { if(subP) st.alleSpieler.add(subP.toLowerCase()); });
+                beteiligte.forEach(subP => { if(subP) st.alleSpieler.add(subP.toLowerCase()); });
 
                 let isDoppel = blockName.toLowerCase().includes("doppel") || m.spieler_kapellen.includes("/");
                 if (isDoppel) return;
@@ -498,7 +498,7 @@
                     if (p1 > p2) isWin = true; else if (p2 > p1) isLoss = true;
                 }
 
-                beteiligigte.forEach(subP => {
+                beteiligte.forEach(subP => {
                     let tk = teamKader.find(t => t.toLowerCase() === subP.toLowerCase());
                     if (tk) {
                         if (isWin) spielerStats[tk].siege++;
