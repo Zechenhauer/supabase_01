@@ -486,7 +486,7 @@
 
                 st.bloecke[blockName].push(matchObj);
                 let beteiligte = m.spieler_kapellen.split("/").map(s => s.trim());
-                beteiligte.forEach(subP => { if(subP) st.alleSpieler.add(subP.toLowerCase()); });
+                beteiligigte.forEach(subP => { if(subP) st.alleSpieler.add(subP.toLowerCase()); });
 
                 let isDoppel = blockName.toLowerCase().includes("doppel") || m.spieler_kapellen.includes("/");
                 if (isDoppel) return;
@@ -498,7 +498,7 @@
                     if (p1 > p2) isWin = true; else if (p2 > p1) isLoss = true;
                 }
 
-                beteiligte.forEach(subP => {
+                beteiligigte.forEach(subP => {
                     let tk = teamKader.find(t => t.toLowerCase() === subP.toLowerCase());
                     if (tk) {
                         if (isWin) spielerStats[tk].siege++;
@@ -630,8 +630,16 @@
         let m = globalMatchStore[id];
         if(!m) return;
         let sc = m.scoring;
-        let bestShort = getBestShortLeg(m.darts);
-        let slText = (bestShort >= 9 && bestShort <= 18) ? `<span style="color:#38bdf8; font-weight:bold;">${bestShort} Darts (Short Leg!)</span>` : (m.darts ? `${m.darts} Darts` : '—');
+        
+        // Short Leg Logik: Nur Darts unter 19 filtern (< 19)
+        let shortLegsText = '—';
+        if (m.darts) {
+            let dartsArray = m.darts.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+            let shortLegsArray = dartsArray.filter(d => d < 19);
+            if (shortLegsArray.length > 0) {
+                shortLegsText = `<span style="color:#38bdf8; font-weight:bold;">${shortLegsArray.join(', ')}</span>`;
+            }
+        }
 
         document.getElementById("modalTitle").innerText = `${m.spieler} vs. ${m.gegner}`;
         document.getElementById("modalBody").innerHTML = `
@@ -640,13 +648,14 @@
             <div style="font-size: 13px; color: #cbd5e1; line-height: 1.6;">
                 <div><b>Average:</b> <span style="color:#f59e0b;">${m.avg || '—'}</span></div>
                 <div><b>Darts pro Leg:</b> <span style="color:#fff;">${m.darts || '—'}</span></div>
-                <div><b>Bestes Short Leg:</b> ${slText}</div>
+                <div><b>Short Leg:</b> ${shortLegsText}</div>
                 <div><b>High Finish:</b> <span style="color:#ec4899; font-weight:bold;">${sc.high_finish || '—'}</span></div>
                 <div><b>180er:</b> <span style="color:#f59e0b; font-weight:bold;">${sc.score_180 || 0}x</span></div>
                 <div style="margin-top: 8px; font-size: 11px; color:#94a3b8;">Scores: 60+ (${sc.score_60}) | 80+ (${sc.score_80}) | 100+ (${sc.score_100}) | 140+ (${sc.score_140})</div>
             </div>`;
         document.getElementById("matchModal").style.display = "flex";
     }
+
     function closeModal() { document.getElementById("matchModal").style.display = "none"; }
     function openAdminModal() { document.getElementById("adminModal").style.display = "flex"; }
     function closeAdminModal() { document.getElementById("adminModal").style.display = "none"; }
