@@ -638,14 +638,13 @@
             <div style="font-size: 13px; color: #cbd5e1; line-height: 1.6;">
                 <div><b>Average:</b> <span style="color:#f59e0b;">${m.avg || '—'}</span></div>
                 <div><b>Darts pro Leg:</b> <span style="color:#fff;">${m.darts || '—'}</span></div>
-                <div><b>Short Leg:</b> <span style="color:#38bdf8; font-weight:bold;">${m.darts || '—'}</span></div>
+                <div><b>Short Leg:</b> <span style="color:#fff;">${m.darts || '—'}</span></div>
                 <div><b>High Finish:</b> <span style="color:#ec4899; font-weight:bold;">${sc.high_finish || '—'}</span></div>
                 <div><b>180er:</b> <span style="color:#f59e0b; font-weight:bold;">${sc.score_180 || 0}x</span></div>
                 <div style="margin-top: 8px; font-size: 11px; color:#94a3b8;">Scores: 60+ (${sc.score_60}) | 80+ (${sc.score_80}) | 100+ (${sc.score_100}) | 140+ (${sc.score_140})</div>
             </div>`;
         document.getElementById("matchModal").style.display = "flex";
     }
-
     function closeModal() { document.getElementById("matchModal").style.display = "none"; }
     function openAdminModal() { document.getElementById("adminModal").style.display = "flex"; }
     function closeAdminModal() { document.getElementById("adminModal").style.display = "none"; }
