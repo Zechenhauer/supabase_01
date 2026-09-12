@@ -64,7 +64,6 @@
     
     .matchday-score { font-size: 22px; font-weight: 900; color: #f59e0b; background: #1e293b; padding: 4px 14px; border-radius: 8px; border: 1px solid #334155; }
 
-    /* Farbige Block-Trennlinien wie auf deinem Screenshot */
     .block-title-container { background: #1e293b; padding: 10px 15px; border-bottom: 1px solid #334155; border-top: 1px solid #334155; }
     .block-badge { display: inline-block; font-size: 11px; font-weight: 900; text-transform: uppercase; padding: 5px 14px; border-radius: 6px; background: #f59e0b; color: #0f172a; border: 1px solid #d97706; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
     
@@ -81,7 +80,6 @@
     .score-tag { background: #0f172a; color: #f59e0b; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 14px; border: 1px solid #334155; min-width: 45px; text-align: center; }
     .stats-icon { color: #34d399; font-size: 14px; margin-left: 10px; }
 
-    /* Modal Styling exakt nach deiner Screenshot-Vorlage */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); }
     .modal-content { background: #1e293b; border: 1px solid #f59e0b; width: 90%; max-width: 550px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); max-height: 90vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 15px; }
@@ -496,7 +494,7 @@
 
                 st.bloecke[blockName].push(matchObj);
                 let beteiligte = m.spieler_kapellen.split("/").map(s => s.trim());
-                beteiligigte.forEach(subP => { if(subP) st.alleSpieler.add(subP.toLowerCase()); });
+                beteiligte.forEach(subP => { if(subP) st.alleSpieler.add(subP.toLowerCase()); });
 
                 let isDoppel = blockName.toLowerCase().includes("doppel") || m.spieler_kapellen.includes("/");
                 if (isDoppel) return;
@@ -508,7 +506,7 @@
                     if (p1 > p2) isWin = true; else if (p2 > p1) isLoss = true;
                 }
 
-                beteiligigte.forEach(subP => {
+                beteiligte.forEach(subP => {
                     let tk = teamKader.find(t => t.toLowerCase() === subP.toLowerCase());
                     if (tk) {
                         if (isWin) spielerStats[tk].siege++;
