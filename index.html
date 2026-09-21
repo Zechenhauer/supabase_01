@@ -274,7 +274,7 @@
             text-transform: uppercase;
         }
 
-        /* ETWAS GRÖSSERES, RECHTECKIGES Spielerfoto in der Torschützenliste */
+        /* Spielerfoto in der Torschützenliste (mit contain, damit nichts abgeschnitten wird) */
         .scorer-row-content {
             display: flex;
             align-items: center;
@@ -283,10 +283,10 @@
         .player-mini-avatar {
             width: 48px;
             height: 34px;
-            border-radius: 5px; /* Leicht abgerundete Ecken */
-            object-fit: cover;
-            border: 1px solid var(--bayern-red);
+            border-radius: 5px;
+            object-fit: contain;
             background: #21262d;
+            border: 1px solid var(--bayern-red);
             flex-shrink: 0;
         }
 
