@@ -399,6 +399,7 @@
                 <option value="Kokser">Kokser (Grün)</option>
             </select>
             <button class="matchday-btn" onclick="openPasswordModal()" style="font-size: 0.75rem;">🔑 Passwort ändern</button>
+            <button class="matchday-btn" onclick="loadFromCloud(true)" style="background: #21262d; border-color: var(--border-color);" title="Daten sofort neu laden">🔄 Aktualisieren</button>
             <button class="matchday-btn" onclick="openLeaderboardModal()" style="background: var(--bayern-red); border-color: var(--bayern-red);">🏆 Gesamtwertung</button>
         </div>
     </div>
@@ -1015,7 +1016,7 @@
         }
     }
 
-    async function loadFromCloud() {
+    async function loadFromCloud(showAlert = false) {
         try {
             let [matchesRes, tipsRes, pwRes] = await Promise.all([
                 supabaseClient.from('bundesliga_spiele').select('*'),
@@ -1053,8 +1054,13 @@
                     playerPasswords[p.player_name] = p.password;
                 });
             }
+
+            if (showAlert) {
+                alert("Daten erfolgreich aktualisiert!");
+            }
         } catch (e) {
             console.log('Ladehinweis:', e);
+            if (showAlert) alert("Fehler beim Aktualisieren der Daten.");
         }
         renderAll();
     }
@@ -1224,7 +1230,6 @@
             alert('Fehler beim Speichern des Tipps: ' + error.message);
         } else {
             closeTipModal();
-            // Direkt die Tipps frisch aus der Cloud holen und Tabelle aktualisieren
             let { data } = await supabaseClient.from('bundesliga_tipps').select('*');
             if (data) allTips = data;
             renderMatchdayTable();
