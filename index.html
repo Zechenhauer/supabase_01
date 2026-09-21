@@ -43,25 +43,26 @@
             box-shadow: 0 4px 20px rgba(220, 5, 45, 0.15);
         }
 
-        /* Banner Wrapper: Zentriert das Banner und füllt den Hintergrund auf App-Farbe */
+        /* Banner Wrapper: Zentriert das Banner in der Kachel */
         .banner-wrapper {
             width: 100%;
             display: flex;
             justify-content: center;
-            background-color: var(--bg-color);
+            background-color: var(--card-bg); /* Gleiche Farbe wie die App-Kachel */
             border-radius: 8px;
             margin-bottom: 15px;
-            padding: 5px;
+            overflow: hidden;
         }
 
-        /* Banner Styling mit passgenauem roten Rahmen */
+        /* Banner Styling: Roter Rahmen schmiegt sich exakt um das Bild */
         .app-banner {
-            width: 100%;
+            width: auto;
+            max-width: 100%;
             height: auto;
             max-height: 250px;
             object-fit: contain;
             border-radius: 6px;
-            border: 1px solid var(--bayern-red);
+            border: 2px solid var(--bayern-red);
             box-shadow: 0 4px 15px rgba(220, 5, 45, 0.3);
             display: block;
         }
@@ -403,7 +404,7 @@
 <body>
 
 <div class="container">
-    <!-- Banner mit passgenauem Rahmen -->
+    <!-- Banner mit passgenauem Rahmen und App-Hintergrund drumherum -->
     <div class="banner-wrapper">
         <img src="https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/banner_Bayern.png" alt="FC Bayern Banner" class="app-banner">
     </div>
