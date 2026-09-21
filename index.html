@@ -274,16 +274,16 @@
             text-transform: uppercase;
         }
 
-        /* RECHTECKIGES Spielerfoto in der Torschützenliste */
+        /* ETWAS GRÖSSERES, RECHTECKIGES Spielerfoto in der Torschützenliste */
         .scorer-row-content {
             display: flex;
             align-items: center;
             gap: 10px;
         }
         .player-mini-avatar {
-            width: 36px;
-            height: 26px;
-            border-radius: 4px; /* Leicht abgerundete Ecken (rechteckig) */
+            width: 48px;
+            height: 34px;
+            border-radius: 5px; /* Leicht abgerundete Ecken */
             object-fit: cover;
             border: 1px solid var(--bayern-red);
             background: #21262d;
@@ -1497,7 +1497,7 @@
                 
                 let avatarHtml = photoUrl 
                     ? `<img src="${photoUrl}" alt="${player}" class="player-mini-avatar">` 
-                    : `<div class="player-mini-avatar" style="display:flex; align-items:center; justify-content:center; font-size:0.5rem; color:var(--text-muted);">⚽</div>`;
+                    : `<div class="player-mini-avatar" style="display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:var(--text-muted);">⚽</div>`;
 
                 scorersBody.innerHTML += `
                     <td>
