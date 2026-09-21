@@ -592,7 +592,7 @@
         'Kokser': { color: '#10b981', bg: 'rgba(16, 185, 129, 0.2)', border: '#10b981' }
     };
 
-    let playerPasswords = {}; // Speichert die Passwörter aus der DB
+    let playerPasswords = {};
     let allTips = [];
     let pendingMatchId = null;
     let pendingHome = '';
@@ -1103,7 +1103,6 @@
         if (isAdmin) renderInputForm();
     }
 
-    // Passwort Modal Funktionen
     function openPasswordModal() {
         document.getElementById('pwTipperName').textContent = currentTipper;
         document.getElementById('newPasswordInput').value = '';
@@ -1130,12 +1129,14 @@
             alert("Fehler beim Speichern des Passworts: " + error.message);
         } else {
             playerPasswords[currentTipper] = newPw;
-            alert(`Passwort für ${currentTipper} erfolgreich gespeichert!`);
+            // Gleich als eingeloggt merken für diese Sitzung
+            sessionStorage.setItem('auth_' + currentTipper, 'true');
+            alert(`Passwort für ${currentTipper} erfolgreich gespeichert & freigeschaltet!`);
             closePasswordModal();
         }
     }
 
-    // Tippen starten -> erst Passwort abfragen falls hinterlegt
+    // Prüfen, ob der Tipper für diese Browser-Sitzung bereits freigeschaltet ist
     function requestTipAuthentication(matchId, homeTeam, awayTeam) {
         pendingMatchId = matchId;
         pendingHome = homeTeam;
@@ -1143,9 +1144,9 @@
 
         let registeredPw = playerPasswords[currentTipper];
 
-        // Wenn noch kein Passwort vergeben wurde, direkt freigeben oder zum Einrichten leiten
+        // Wenn noch kein Passwort vergeben wurde
         if (!registeredPw) {
-            let setupNow = confirm(`Für "${currentTipper}" ist noch kein Passwort hinterlegt. Möchtest du jetzt eines einrichten? (Du kannst auch ohne fortfahren)`);
+            let setupNow = confirm(`Für "${currentTipper}" ist noch kein Passwort hinterlegt. Möchtest du jetzt eines einrichten?`);
             if (setupNow) {
                 openPasswordModal();
                 return;
@@ -1155,7 +1156,13 @@
             }
         }
 
-        // Passwort abfragen
+        // Wenn in dieser Sitzung das Passwort schonmal richtig eingegeben wurde -> direkt öffnen!
+        if (sessionStorage.getItem('auth_' + currentTipper) === 'true') {
+            openTipModalDirect(matchId, homeTeam, awayTeam);
+            return;
+        }
+
+        // Ansonsten Passwort abfragen
         document.getElementById('authTipperName').textContent = currentTipper;
         document.getElementById('authPasswordInput').value = '';
         document.getElementById('authModal').style.display = 'flex';
@@ -1171,6 +1178,8 @@
         let registeredPw = playerPasswords[currentTipper];
 
         if (enteredPw === registeredPw) {
+            // Als eingeloggt für diese Browser-Sitzung merken
+            sessionStorage.setItem('auth_' + currentTipper, 'true');
             closeAuthModal();
             openTipModalDirect(pendingMatchId, pendingHome, pendingAway);
         } else {
