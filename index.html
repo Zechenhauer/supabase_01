@@ -43,16 +43,25 @@
             box-shadow: 0 4px 20px rgba(220, 5, 45, 0.15);
         }
 
-        /* Banner Styling (Vollständig sichtbar ohne Abschneiden) */
+        /* Banner Wrapper: Zentriert das Banner und füllt den Hintergrund auf App-Farbe */
+        .banner-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            background-color: var(--bg-color);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 5px;
+        }
+
+        /* Banner Styling mit passgenauem roten Rahmen */
         .app-banner {
             width: 100%;
             height: auto;
             max-height: 250px;
             object-fit: contain;
-            background-color: #0b0f19;
-            border-radius: 8px;
+            border-radius: 6px;
             border: 1px solid var(--bayern-red);
-            margin-bottom: 15px;
             box-shadow: 0 4px 15px rgba(220, 5, 45, 0.3);
             display: block;
         }
@@ -394,8 +403,10 @@
 <body>
 
 <div class="container">
-    <!-- Banner ganz oben -->
-    <img src="https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/banner_Bayern.png" alt="FC Bayern Banner" class="app-banner">
+    <!-- Banner mit passgenauem Rahmen -->
+    <div class="banner-wrapper">
+        <img src="https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/banner_Bayern.png" alt="FC Bayern Banner" class="app-banner">
+    </div>
 
     <div class="title-row">
         <img src="https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/logo%20fc%20bayern.png" alt="FC Bayern Logo" class="header-logo">
