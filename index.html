@@ -175,33 +175,6 @@
             border-bottom: 1px solid rgba(220, 5, 45, 0.3);
         }
 
-        .live-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(248, 81, 73, 0.15);
-            color: #f85149;
-            border: 1px solid rgba(248, 81, 73, 0.4);
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .live-dot {
-            width: 6px;
-            height: 6px;
-            background-color: #f85149;
-            border-radius: 50%;
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 1; }
-            50% { transform: scale(1.3); opacity: 0.4; }
-            100% { transform: scale(0.95); opacity: 1; }
-        }
-
         .table-container {
             width: 100%;
             overflow-x: auto;
@@ -287,7 +260,7 @@
             gap: 3px;
         }
 
-        /* Modal für Tippabgabe */
+        /* Modal */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -408,7 +381,7 @@
     <div class="subtitle" id="leagueSubtitle">1. Bundesliga — Saison 2026/27 & Tippspiel</div>
     <div class="meta-info">
         <span>⚡ Web-App & Management: Jürgen Schützendorf</span>
-        <span class="supabase-badge">● Live-Sync & Smart-Refresh aktiv</span>
+        <span class="supabase-badge">● Live-Sync aktiv</span>
     </div>
 
     <!-- TIPPSPIEL LEISTE -->
@@ -420,14 +393,12 @@
                 <div style="font-size: 0.85rem; font-weight: bold;" id="activeTipperDisplay">Eingeloggt als: Langen</div>
             </div>
         </div>
-        <div style="display: flex; gap: 8px; align-items: center;">
-            <select id="tipperSelect" class="form-control" style="width: 140px; font-weight: bold;" onchange="changeTipper(this.value)">
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <select id="tipperSelect" class="form-control" style="width: 130px; font-weight: bold;" onchange="changeTipper(this.value)">
                 <option value="Langen">Langen (Gold)</option>
-                <option value="Pelle">Pelle (Blau)</option>
                 <option value="Kokser">Kokser (Grün)</option>
-                <option value="Hörmi">Hörmi (Lila)</option>
-                <option value="Tom">Tom (Türkis)</option>
             </select>
+            <button class="matchday-btn" onclick="openPasswordModal()" style="font-size: 0.75rem;">🔑 Passwort ändern</button>
             <button class="matchday-btn" onclick="openLeaderboardModal()" style="background: var(--bayern-red); border-color: var(--bayern-red);">🏆 Gesamtwertung</button>
         </div>
     </div>
@@ -468,7 +439,7 @@
                         <th style="text-align: right;">Heimmannschaft</th>
                         <th style="text-align: center; width: 160px;">Ergebnis / Status</th>
                         <th>Gastmannschaft</th>
-                        <th style="width: 90px; text-align: center;">Tipp</th>
+                        <th style="width: 110px; text-align: center;">Tipp</th>
                         <th style="width: 40px; text-align: center;"></th>
                     </tr>
                 </thead>
@@ -516,6 +487,41 @@
 
     <div class="admin-toggle-wrapper">
         <button class="admin-toggle-btn" onclick="toggleAdminMode()">⚙️ Admin-Zugang</button>
+    </div>
+</div>
+
+<!-- MODAL: PASSWORT ABFRAGE (VOR TIPPEN) -->
+<div class="modal-overlay" id="authModal">
+    <div class="modal-card">
+        <div style="font-weight: bold; font-size: 1rem; color: #ffffff; margin-bottom: 5px;">🔐 Tipp-Schutz</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 15px;">Bitte gib das Passwort für <strong id="authTipperName">Langen</strong> ein:</div>
+        
+        <div style="margin-bottom: 15px;">
+            <input type="password" id="authPasswordInput" class="form-control" placeholder="Dein Passwort..." style="text-align: center; font-size: 1rem;">
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button class="btn" style="background: #21262d; margin-top: 0;" onclick="closeAuthModal()">Abbrechen</button>
+            <button class="btn" style="margin-top: 0;" onclick="verifyAndOpenTipModal()">Bestätigen</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: PASSWORT FESTLEGEN / ÄNDERN -->
+<div class="modal-overlay" id="passwordModal">
+    <div class="modal-card">
+        <div style="font-weight: bold; font-size: 1rem; color: #ffffff; margin-bottom: 5px;">🔑 Passwort einrichten</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 15px;">Vergib ein eigenes Passwort für <strong id="pwTipperName">Langen</strong> (wird sicher online gespeichert):</div>
+        
+        <div style="margin-bottom: 15px;">
+            <label style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Neues Passwort</label>
+            <input type="password" id="newPasswordInput" class="form-control" placeholder="Passwort eingeben..." style="text-align: center; font-size: 1rem;">
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button class="btn" style="background: #21262d; margin-top: 0;" onclick="closePasswordModal()">Abbrechen</button>
+            <button class="btn" style="margin-top: 0;" onclick="saveNewPassword()">Passwort speichern</button>
+        </div>
     </div>
 </div>
 
@@ -577,21 +583,20 @@
     const ADMIN_PIN = "1919";
     let isAdmin = false;
 
-    // Tippspiel-Variablen
     let currentTipper = localStorage.getItem('bundesliga_tipper') || 'Langen';
     document.getElementById('tipperSelect').value = currentTipper;
     document.getElementById('activeTipperDisplay').textContent = `Eingeloggt als: ${currentTipper}`;
 
     const playerConfigs = {
         'Langen': { color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.2)', border: '#f59e0b' },
-        'Pelle': { color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.2)', border: '#3b82f6' },
-        'Kokser': { color: '#10b981', bg: 'rgba(16, 185, 129, 0.2)', border: '#10b981' },
-        'Hörmi': { color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.2)', border: '#8b5cf6' },
-        'Tom': { color: '#06b6d4', bg: 'rgba(6, 182, 212, 0.2)', border: '#06b6d4' }
+        'Kokser': { color: '#10b981', bg: 'rgba(16, 185, 129, 0.2)', border: '#10b981' }
     };
 
-    let allTips = []; // Speichert alle abgegebenen Tipps aus der DB
-    let activeModalMatchId = null;
+    let playerPasswords = {}; // Speichert die Passwörter aus der DB
+    let allTips = [];
+    let pendingMatchId = null;
+    let pendingHome = '';
+    let pendingAway = '';
 
     function changeTipper(name) {
         currentTipper = name;
@@ -600,7 +605,6 @@
         renderMatchdayTable();
     }
 
-    // Standard Spielplan (unverändert)
     let leagueData = {
         currentMatchday: 1,
         teams: [
@@ -621,7 +625,6 @@
                 { "home": "Sport-Club Freiburg", "away": "SV Werder Bremen", "date": "2026-08-30", "time": "15:30" },
                 { "home": "FC Augsburg", "away": "FC Schalke 04", "date": "2026-08-30", "time": "17:30" }
             ],
-            // (Weitere Spieltage 2 bis 34 hier im gleichen Format wie bisher im Code)
             "2": [
                 { "home": "VfB Stuttgart", "away": "1. FC Köln", "date": "2026-09-04", "time": "20:30" },
                 { "home": "Bayer 04 Leverkusen", "away": "1. FC Union Berlin", "date": "2026-09-05", "time": "15:30" },
@@ -632,8 +635,359 @@
                 { "home": "FC Schalke 04", "away": "FC Bayern München", "date": "2026-09-05", "time": "18:30" },
                 { "home": "Hamburger SV", "away": "1. FSV Mainz 05", "date": "2026-09-06", "time": "15:30" },
                 { "home": "Eintracht Frankfurt", "away": "FC Augsburg", "date": "2026-09-06", "time": "17:30" }
+            ],
+            "3": [
+                { "home": "1. FC Union Berlin", "away": "FC Schalke 04", "date": "2026-09-11", "time": "20:30" },
+                { "home": "1. FSV Mainz 05", "away": "Eintracht Frankfurt", "date": "2026-09-12", "time": "15:30" },
+                { "home": "Borussia Dortmund", "away": "SC Paderborn 07", "date": "2026-09-12", "time": "15:30" },
+                { "home": "FC Augsburg", "away": "Bayer 04 Leverkusen", "date": "2026-09-12", "time": "15:30" },
+                { "home": "Sport-Club Freiburg", "away": "Borussia Mönchengladbach", "date": "2026-09-12", "time": "15:30" },
+                { "home": "TSG Hoffenheim", "away": "VfB Stuttgart", "date": "2026-09-12", "time": "15:30" },
+                { "home": "1. FC Köln", "away": "SV Werder Bremen", "date": "2026-09-12", "time": "18:30" },
+                { "home": "RB Leipzig", "away": "Hamburger SV", "date": "2026-09-13", "time": "15:30" },
+                { "home": "SV Elversberg", "away": "FC Bayern München", "date": "2026-09-13", "time": "17:30" }
+            ],
+            "4": [
+                { "home": "FC Bayern München", "away": "1. FC Union Berlin", "date": "2026-09-18", "time": "20:30" },
+                { "home": "Borussia Mönchengladbach", "away": "1. FSV Mainz 05", "date": "2026-09-19", "time": "15:30" },
+                { "home": "Eintracht Frankfurt", "away": "Sport-Club Freiburg", "date": "2026-09-19", "time": "15:30" },
+                { "home": "Hamburger SV", "away": "1. FC Köln", "date": "2026-09-19", "time": "15:30" },
+                { "home": "SV Werder Bremen", "away": "FC Augsburg", "date": "2026-09-19", "time": "15:30" },
+                { "home": "VfB Stuttgart", "away": "Borussia Dortmund", "date": "2026-09-19", "time": "18:30" },
+                { "home": "Bayer 04 Leverkusen", "away": "RB Leipzig", "date": "2026-09-20", "time": "15:30" },
+                { "home": "FC Schalke 04", "away": "SV Elversberg", "date": "2026-09-20", "time": "17:30" },
+                { "home": "SC Paderborn 07", "away": "TSG Hoffenheim", "date": "2026-09-20", "time": "19:30" }
+            ],
+            "5": [
+                { "home": "Borussia Dortmund", "away": "SV Werder Bremen", "date": "2026-10-09", "time": "20:30" },
+                { "home": "1. FC Union Berlin", "away": "SV Elversberg", "date": "2026-10-10", "time": "15:30" },
+                { "home": "1. FSV Mainz 05", "away": "Bayer 04 Leverkusen", "date": "2026-10-10", "time": "15:30" },
+                { "home": "FC Augsburg", "away": "FC Bayern München", "date": "2026-10-10", "time": "15:30" },
+                { "home": "SC Paderborn 07", "away": "VfB Stuttgart", "date": "2026-10-10", "time": "15:30" },
+                { "home": "TSG Hoffenheim", "away": "Hamburger SV", "date": "2026-10-10", "time": "15:30" },
+                { "home": "RB Leipzig", "away": "Eintracht Frankfurt", "date": "2026-10-10", "time": "18:30" },
+                { "home": "1. FC Köln", "away": "Borussia Mönchengladbach", "date": "2026-10-11", "time": "15:30" },
+                { "home": "Sport-Club Freiburg", "away": "FC Schalke 04", "date": "2026-10-11", "time": "17:30" }
+            ],
+            "6": [
+                { "home": "Eintracht Frankfurt", "away": "1. FC Köln", "date": "2026-10-16", "time": "20:30" },
+                { "home": "1. FC Union Berlin", "away": "Borussia Dortmund", "date": "2026-10-17", "time": "15:30" },
+                { "home": "FC Schalke 04", "away": "1. FSV Mainz 05", "date": "2026-10-17", "time": "15:30" },
+                { "home": "Hamburger SV", "away": "VfB Stuttgart", "date": "2026-10-17", "time": "15:30" },
+                { "home": "SV Elversberg", "away": "FC Augsburg", "date": "2026-10-17", "time": "15:30" },
+                { "home": "SV Werder Bremen", "away": "SC Paderborn 07", "date": "2026-10-17", "time": "15:30" },
+                { "home": "FC Bayern München", "away": "RB Leipzig", "date": "2026-10-17", "time": "18:30" },
+                { "home": "Bayer 04 Leverkusen", "away": "Sport-Club Freiburg", "date": "2026-10-18", "time": "15:30" },
+                { "home": "Borussia Mönchengladbach", "away": "TSG Hoffenheim", "date": "2026-10-18", "time": "17:30" }
+            ],
+            "7": [
+                { "home": "VfB Stuttgart", "away": "Borussia Mönchengladbach", "date": "2026-10-23", "time": "20:30" },
+                { "home": "1. FC Köln", "away": "FC Schalke 04", "date": "2026-10-24", "time": "15:30" },
+                { "home": "1. FSV Mainz 05", "away": "SV Werder Bremen", "date": "2026-10-24", "time": "15:30" },
+                { "home": "FC Augsburg", "away": "1. FC Union Berlin", "date": "2026-10-24", "time": "15:30" },
+                { "home": "RB Leipzig", "away": "SV Elversberg", "date": "2026-10-24", "time": "15:30" },
+                { "home": "SC Paderborn 07", "away": "Hamburger SV", "date": "2026-10-24", "time": "15:30" },
+                { "home": "Borussia Dortmund", "away": "Eintracht Frankfurt", "date": "2026-10-24", "time": "18:30" },
+                { "home": "TSG Hoffenheim", "away": "Bayer 04 Leverkusen", "date": "2026-10-25", "time": "15:30" },
+                { "home": "Sport-Club Freiburg", "away": "FC Bayern München", "date": "2026-10-25", "time": "17:30" }
+            ],
+            "8": [
+                { "home": "SV Elversberg", "away": "1. FSV Mainz 05", "date": "2026-10-30", "time": "20:30" },
+                { "home": "Bayer 04 Leverkusen", "away": "VfB Stuttgart", "date": "2026-10-31", "time": "15:30" },
+                { "home": "Borussia Mönchengladbach", "away": "SC Paderborn 07", "date": "2026-10-31", "time": "15:30" },
+                { "home": "FC Augsburg", "away": "Sport-Club Freiburg", "date": "2026-10-31", "time": "15:30" },
+                { "home": "FC Schalke 04", "away": "RB Leipzig", "date": "2026-10-31", "time": "15:30" },
+                { "home": "SV Werder Bremen", "away": "TSG Hoffenheim", "date": "2026-10-31", "time": "15:30" },
+                { "home": "FC Bayern München", "away": "Borussia Dortmund", "date": "2026-10-31", "time": "18:30" },
+                { "home": "1. FC Union Berlin", "away": "1. FC Köln", "date": "2026-11-01", "time": "15:30" },
+                { "home": "Eintracht Frankfurt", "away": "Hamburger SV", "date": "2026-11-01", "time": "17:30" }
+            ],
+            "9": [
+                { "home": "Hamburger SV", "away": "Borussia Mönchengladbach", "date": "2026-11-06", "time": "20:30" },
+                { "home": "1. FSV Mainz 05", "away": "FC Bayern München", "date": "2026-11-07", "time": "15:30" },
+                { "home": "Borussia Dortmund", "away": "SV Elversberg", "date": "2026-11-07", "time": "15:30" },
+                { "home": "RB Leipzig", "away": "FC Augsburg", "date": "2026-11-07", "time": "15:30" },
+                { "home": "SC Paderborn 07", "away": "Eintracht Frankfurt", "date": "2026-11-07", "time": "15:30" },
+                { "home": "VfB Stuttgart", "away": "SV Werder Bremen", "date": "2026-11-07", "time": "18:30" },
+                { "home": "1. FC Köln", "away": "Bayer 04 Leverkusen", "date": "2026-11-08", "time": "15:30" },
+                { "home": "Sport-Club Freiburg", "away": "1. FC Union Berlin", "date": "2026-11-08", "time": "17:30" },
+                { "home": "TSG Hoffenheim", "away": "FC Schalke 04", "date": "2026-11-08", "time": "19:30" }
+            ],
+            "10": [
+                { "home": "FC Bayern München", "away": "1. FC Köln", "date": "2026-11-20", "time": "20:30" },
+                { "home": "1. FC Union Berlin", "away": "RB Leipzig", "date": "2026-11-21", "time": "15:30" },
+                { "home": "Bayer 04 Leverkusen", "away": "SC Paderborn 07", "date": "2026-11-21", "time": "15:30" },
+                { "home": "Borussia Mönchengladbach", "away": "Borussia Dortmund", "date": "2026-11-21", "time": "15:30" },
+                { "home": "Eintracht Frankfurt", "away": "TSG Hoffenheim", "date": "2026-11-21", "time": "15:30" },
+                { "home": "SV Elversberg", "away": "Sport-Club Freiburg", "date": "2026-11-21", "time": "15:30" },
+                { "home": "FC Schalke 04", "away": "VfB Stuttgart", "date": "2026-11-21", "time": "18:30" },
+                { "home": "FC Augsburg", "away": "1. FSV Mainz 05", "date": "2026-11-22", "time": "15:30" },
+                { "home": "SV Werder Bremen", "away": "Hamburger SV", "date": "2026-11-22", "time": "17:30" }
+            ],
+            "11": [
+                { "home": "SV Werder Bremen", "away": "Borussia Mönchengladbach", "date": "2026-11-27", "time": "20:30" },
+                { "home": "1. FC Köln", "away": "SV Elversberg", "date": "2026-11-28", "time": "15:30" },
+                { "home": "1. FSV Mainz 05", "away": "1. FC Union Berlin", "date": "2026-11-28", "time": "15:30" },
+                { "home": "Hamburger SV", "away": "FC Bayern München", "date": "2026-11-28", "time": "15:30" },
+                { "home": "SC Paderborn 07", "away": "FC Schalke 04", "date": "2026-11-28", "time": "15:30" },
+                { "home": "VfB Stuttgart", "away": "Eintracht Frankfurt", "date": "2026-11-28", "time": "18:30" },
+                { "home": "Sport-Club Freiburg", "away": "RB Leipzig", "date": "2026-11-29", "time": "15:30" },
+                { "home": "TSG Hoffenheim", "away": "FC Augsburg", "date": "2026-11-29", "time": "17:30" },
+                { "home": "Borussia Dortmund", "away": "Bayer 04 Leverkusen", "date": "2026-11-29", "time": "19:30" }
+            ],
+            "12": [
+                { "home": "1. FC Union Berlin", "away": "Hamburger SV", "date": "2026-12-04", "time": "20:30" },
+                { "home": "Bayer 04 Leverkusen", "away": "Borussia Mönchengladbach", "date": "2026-12-05", "time": "15:30" },
+                { "home": "Eintracht Frankfurt", "away": "SV Werder Bremen", "date": "2026-12-05", "time": "15:30" },
+                { "home": "FC Augsburg", "away": "1. FC Köln", "date": "2026-12-05", "time": "15:30" },
+                { "home": "FC Bayern München", "away": "SC Paderborn 07", "date": "2026-12-05", "time": "15:30" },
+                { "home": "FC Schalke 04", "away": "Borussia Dortmund", "date": "2026-12-05", "time": "15:30" },
+                { "home": "RB Leipzig", "away": "1. FSV Mainz 05", "date": "2026-12-05", "time": "15:30" },
+                { "home": "Sport-Club Freiburg", "away": "TSG Hoffenheim", "date": "2026-12-05", "time": "15:30" },
+                { "home": "SV Elversberg", "away": "VfB Stuttgart", "date": "2026-12-05", "time": "15:30" }
+            ],
+            "13": [
+                { "home": "1. FC Köln", "away": "RB Leipzig", "date": "2026-12-11", "time": "20:30" },
+                { "home": "1. FSV Mainz 05", "away": "Sport-Club Freiburg", "date": "2026-12-12", "time": "15:30" },
+                { "home": "Borussia Dortmund", "away": "FC Augsburg", "date": "2026-12-12", "time": "15:30" },
+                { "home": "Borussia Mönchengladbach", "away": "Eintracht Frankfurt", "date": "2026-12-12", "time": "15:30" },
+                { "home": "Hamburger SV", "away": "FC Schalke 04", "date": "2026-12-12", "time": "15:30" },
+                { "home": "SC Paderborn 07", "away": "SV Elversberg", "date": "2026-12-12", "time": "15:30" },
+                { "home": "SV Werder Bremen", "away": "Bayer 04 Leverkusen", "date": "2026-12-12", "time": "15:30" },
+                { "home": "TSG Hoffenheim", "away": "FC Bayern München", "date": "2026-12-12", "time": "15:30" },
+                { "home": "VfB Stuttgart", "away": "1. FC Union Berlin", "date": "2026-12-12", "time": "15:30" }
+            ],
+            "14": [
+                { "home": "1. FC Union Berlin", "away": "TSG Hoffenheim", "date": "2026-12-18", "time": "20:30" },
+                { "home": "1. FSV Mainz 05", "away": "1. FC Köln", "date": "2026-12-19", "time": "15:30" },
+                { "home": "Bayer 04 Leverkusen", "away": "Eintracht Frankfurt", "date": "2026-12-19", "time": "15:30" },
+                { "home": "FC Augsburg", "away": "SC Paderborn 07", "date": "2026-12-19", "time": "15:30" },
+                { "home": "FC Bayern München", "away": "SV Werder Bremen", "date": "2026-12-19", "time": "15:30" },
+                { "home": "FC Schalke 04", "away": "Borussia Mönchengladbach", "date": "2026-12-19", "time": "15:30" },
+                { "home": "RB Leipzig", "away": "Borussia Dortmund", "date": "2026-12-19", "time": "15:30" },
+                { "home": "Sport-Club Freiburg", "away": "VfB Stuttgart", "date": "2026-12-19", "time": "15:30" },
+                { "home": "SV Elversberg", "away": "Hamburger SV", "date": "2026-12-19", "time": "15:30" }
+            ],
+            "15": [
+                { "home": "1. FC Köln", "away": "Sport-Club Freiburg", "date": "2027-01-08", "time": "20:30" },
+                { "home": "Borussia Dortmund", "away": "1. FSV Mainz 05", "date": "2027-01-09", "time": "15:30" },
+                { "home": "Borussia Mönchengladbach", "away": "FC Bayern München", "date": "2027-01-09", "time": "15:30" },
+                { "home": "Eintracht Frankfurt", "away": "FC Schalke 04", "date": "2027-01-09", "time": "15:30" },
+                { "home": "Hamburger SV", "away": "Bayer 04 Leverkusen", "date": "2027-01-09", "time": "15:30" },
+                { "home": "SC Paderborn 07", "away": "RB Leipzig", "date": "2027-01-09", "time": "15:30" },
+                { "home": "SV Werder Bremen", "away": "1. FC Union Berlin", "date": "2027-01-09", "time": "15:30" },
+                { "home": "TSG Hoffenheim", "away": "SV Elversberg", "date": "2027-01-09", "time": "15:30" },
+                { "home": "VfB Stuttgart", "away": "FC Augsburg", "date": "2027-01-09", "time": "15:30" }
+            ],
+            "16": [
+                { "home": "1. FC Köln", "away": "Borussia Dortmund", "date": "2027-01-12", "time": "20:30" },
+                { "home": "1. FC Union Berlin", "away": "SC Paderborn 07", "date": "2027-01-13", "time": "15:30" },
+                { "home": "1. FSV Mainz 05", "away": "TSG Hoffenheim", "date": "2027-01-13", "time": "15:30" },
+                { "home": "FC Augsburg", "away": "Borussia Mönchengladbach", "date": "2027-01-13", "time": "15:30" },
+                { "home": "FC Bayern München", "away": "Bayer 04 Leverkusen", "date": "2027-01-13", "time": "15:30" },
+                { "home": "FC Schalke 04", "away": "SV Werder Bremen", "date": "2027-01-13", "time": "15:30" },
+                { "home": "RB Leipzig", "away": "VfB Stuttgart", "date": "2027-01-13", "time": "15:30" },
+                { "home": "Sport-Club Freiburg", "away": "Hamburger SV", "date": "2027-01-13", "time": "15:30" },
+                { "home": "SV Elversberg", "away": "Eintracht Frankfurt", "date": "2027-01-13", "time": "15:30" }
+            ],
+            "17": [
+                { "home": "Bayer 04 Leverkusen", "away": "FC Schalke 04", "date": "2027-01-15", "time": "20:30" },
+                { "home": "Borussia Dortmund", "away": "Sport-Club Freiburg", "date": "2027-01-16", "time": "15:30" },
+                { "home": "Borussia Mönchengladbach", "away": "1. FC Union Berlin", "date": "2027-01-16", "time": "15:30" },
+                { "home": "Eintracht Frankfurt", "away": "FC Bayern München", "date": "2027-01-16", "time": "15:30" },
+                { "home": "Hamburger SV", "away": "FC Augsburg", "date": "2027-01-16", "time": "15:30" },
+                { "home": "SC Paderborn 07", "away": "1. FC Köln", "date": "2027-01-16", "time": "15:30" },
+                { "home": "SV Werder Bremen", "away": "SV Elversberg", "date": "2027-01-16", "time": "15:30" },
+                { "home": "TSG Hoffenheim", "away": "RB Leipzig", "date": "2027-01-16", "time": "15:30" },
+                { "home": "VfB Stuttgart", "away": "1. FSV Mainz 05", "date": "2027-01-16", "time": "15:30" }
+            ],
+            "18": [
+                { "home": "Bayer 04 Leverkusen", "away": "SV Elversberg", "date": "2027-01-22", "time": "20:30" },
+                { "home": "Borussia Mönchengladbach", "away": "RB Leipzig", "date": "2027-01-23", "time": "15:30" },
+                { "home": "Eintracht Frankfurt", "away": "1. FC Union Berlin", "date": "2027-01-23", "time": "15:30" },
+                { "home": "FC Schalke 04", "away": "FC Augsburg", "date": "2027-01-23", "time": "15:30" },
+                { "home": "Hamburger SV", "away": "Borussia Dortmund", "date": "2027-01-23", "time": "15:30" },
+                { "home": "SC Paderborn 07", "away": "1. FSV Mainz 05", "date": "2027-01-23", "time": "15:30" },
+                { "home": "SV Werder Bremen", "away": "Sport-Club Freiburg", "date": "2027-01-23", "time": "15:30" },
+                { "home": "TSG Hoffenheim", "away": "1. FC Köln", "date": "2027-01-23", "time": "15:30" },
+                { "home": "VfB Stuttgart", "away": "FC Bayern München", "date": "2027-01-23", "time": "15:30" }
+            ],
+            "19": [
+                { "home": "1. FC Köln", "away": "VfB Stuttgart", "date": "2027-01-29", "time": "20:30" },
+                { "home": "1. FC Union Berlin", "away": "Bayer 04 Leverkusen", "date": "2027-01-30", "time": "15:30" },
+                { "home": "1. FSV Mainz 05", "away": "Hamburger SV", "date": "2027-01-30", "time": "15:30" },
+                { "home": "Borussia Dortmund", "away": "TSG Hoffenheim", "date": "2027-01-30", "time": "15:30" },
+                { "home": "FC Augsburg", "away": "Eintracht Frankfurt", "date": "2027-01-30", "time": "15:30" },
+                { "home": "FC Bayern München", "away": "FC Schalke 04", "date": "2027-01-30", "time": "15:30" },
+                { "home": "RB Leipzig", "away": "SV Werder Bremen", "date": "2027-01-30", "time": "15:30" },
+                { "home": "Sport-Club Freiburg", "away": "SC Paderborn 07", "date": "2027-01-30", "time": "15:30" },
+                { "home": "SV Elversberg", "away": "Borussia Mönchengladbach", "date": "2027-01-30", "time": "15:30" }
+            ],
+            "20": [
+                { "home": "Bayer 04 Leverkusen", "away": "FC Augsburg", "date": "2027-02-05", "time": "20:30" },
+                { "home": "Borussia Mönchengladbach", "away": "Sport-Club Freiburg", "date": "2027-02-06", "time": "15:30" },
+                { "home": "Eintracht Frankfurt", "away": "1. FSV Mainz 05", "date": "2027-02-06", "time": "15:30" },
+                { "home": "FC Bayern München", "away": "SV Elversberg", "date": "2027-02-06", "time": "15:30" },
+                { "home": "FC Schalke 04", "away": "1. FC Union Berlin", "date": "2027-02-06", "time": "15:30" },
+                { "home": "Hamburger SV", "away": "RB Leipzig", "date": "2027-02-06", "time": "15:30" },
+                { "home": "SC Paderborn 07", "away": "Borussia Dortmund", "date": "2027-02-06", "time": "15:30" },
+                { "home": "SV Werder Bremen", "away": "1. FC Köln", "date": "2027-02-06", "time": "15:30" },
+                { "home": "VfB Stuttgart", "away": "TSG Hoffenheim", "date": "2027-02-06", "time": "15:30" }
+            ],
+            "21": [
+                { "home": "1. FC Köln", "away": "Hamburger SV", "date": "2027-02-12", "time": "20:30" },
+                { "home": "1. FC Union Berlin", "away": "FC Bayern München", "date": "2027-02-13", "time": "15:30" },
+                { "home": "1. FSV Mainz 05", "away": "Borussia Mönchengladbach", "date": "2027-02-13", "time": "15:30" },
+                { "home": "Borussia Dortmund", "away": "VfB Stuttgart", "date": "2027-02-13", "time": "15:30" },
+                { "home": "FC Augsburg", "away": "SV Werder Bremen", "date": "2027-02-13", "time": "15:30" },
+                { "home": "RB Leipzig", "away": "Bayer 04 Leverkusen", "date": "2027-02-13", "time": "15:30" },
+                { "home": "Sport-Club Freiburg", "away": "Eintracht Frankfurt", "date": "2027-02-13", "time": "15:30" },
+                { "home": "SV Elversberg", "away": "FC Schalke 04", "date": "2027-02-13", "time": "15:30" },
+                { "home": "TSG Hoffenheim", "away": "SC Paderborn 07", "date": "2027-02-13", "time": "15:30" }
+            ],
+            "22": [
+                { "home": "Bayer 04 Leverkusen", "away": "1. FSV Mainz 05", "date": "2027-02-19", "time": "20:30" },
+                { "home": "Borussia Mönchengladbach", "away": "1. FC Köln", "date": "2027-02-20", "time": "15:30" },
+                { "home": "Eintracht Frankfurt", "away": "RB Leipzig", "date": "2027-02-20", "time": "15:30" },
+                { "home": "FC Bayern München", "away": "FC Augsburg", "date": "2027-02-20", "time": "15:30" },
+                { "home": "FC Schalke 04", "away": "Sport-Club Freiburg", "date": "2027-02-20", "time": "15:30" },
+                { "home": "Hamburger SV", "away": "TSG Hoffenheim", "date": "2027-02-20", "time": "15:30" },
+                { "home": "SV Elversberg", "away": "1. FC Union Berlin", "date": "2027-02-20", "time": "15:30" },
+                { "home": "SV Werder Bremen", "away": "Borussia Dortmund", "date": "2027-02-20", "time": "15:30" },
+                { "home": "VfB Stuttgart", "away": "SC Paderborn 07", "date": "2027-02-20", "time": "15:30" }
+            ],
+            "23": [
+                { "home": "1. FC Köln", "away": "Eintracht Frankfurt", "date": "2027-02-26", "time": "20:30" },
+                { "home": "1. FSV Mainz 05", "away": "FC Schalke 04", "date": "2027-02-27", "time": "15:30" },
+                { "home": "Borussia Dortmund", "away": "1. FC Union Berlin", "date": "2027-02-27", "time": "15:30" },
+                { "home": "FC Augsburg", "away": "SV Elversberg", "date": "2027-02-27", "time": "15:30" },
+                { "home": "RB Leipzig", "away": "FC Bayern München", "date": "2027-02-27", "time": "15:30" },
+                { "home": "SC Paderborn 07", "away": "SV Werder Bremen", "date": "2027-02-27", "time": "15:30" },
+                { "home": "Sport-Club Freiburg", "away": "Bayer 04 Leverkusen", "date": "2027-02-27", "time": "15:30" },
+                { "home": "TSG Hoffenheim", "away": "Borussia Mönchengladbach", "date": "2027-02-27", "time": "15:30" },
+                { "home": "VfB Stuttgart", "away": "Hamburger SV", "date": "2027-02-27", "time": "15:30" }
+            ],
+            "24": [
+                { "home": "1. FC Union Berlin", "away": "FC Augsburg", "date": "2027-03-02", "time": "20:30" },
+                { "home": "Bayer 04 Leverkusen", "away": "TSG Hoffenheim", "date": "2027-03-02", "time": "20:30" },
+                { "home": "Borussia Mönchengladbach", "away": "VfB Stuttgart", "date": "2027-03-02", "time": "20:30" },
+                { "home": "Eintracht Frankfurt", "away": "Borussia Dortmund", "date": "2027-03-02", "time": "20:30" },
+                { "home": "FC Bayern München", "away": "Sport-Club Freiburg", "date": "2027-03-02", "time": "20:30" },
+                { "home": "FC Schalke 04", "away": "1. FC Köln", "date": "2027-03-02", "time": "20:30" },
+                { "home": "Hamburger SV", "away": "SC Paderborn 07", "date": "2027-03-02", "time": "20:30" },
+                { "home": "SV Elversberg", "away": "RB Leipzig", "date": "2027-03-02", "time": "20:30" },
+                { "home": "SV Werder Bremen", "away": "1. FSV Mainz 05", "date": "2027-03-02", "time": "20:30" }
+            ],
+            "25": [
+                { "home": "1. FC Köln", "away": "1. FC Union Berlin", "date": "2027-03-05", "time": "20:30" },
+                { "home": "1. FSV Mainz 05", "away": "SV Elversberg", "date": "2027-03-06", "time": "15:30" },
+                { "home": "Borussia Dortmund", "away": "FC Bayern München", "date": "2027-03-06", "time": "15:30" },
+                { "home": "Hamburger SV", "away": "Eintracht Frankfurt", "date": "2027-03-06", "time": "15:30" },
+                { "home": "RB Leipzig", "away": "FC Schalke 04", "date": "2027-03-06", "time": "15:30" },
+                { "home": "SC Paderborn 07", "away": "Borussia Mönchengladbach", "date": "2027-03-06", "time": "15:30" },
+                { "home": "Sport-Club Freiburg", "away": "FC Augsburg", "date": "2027-03-06", "time": "15:30" },
+                { "home": "TSG Hoffenheim", "away": "SV Werder Bremen", "date": "2027-03-06", "time": "15:30" },
+                { "home": "VfB Stuttgart", "away": "Bayer 04 Leverkusen", "date": "2027-03-06", "time": "15:30" }
+            ],
+            "26": [
+                { "home": "1. FC Union Berlin", "away": "Sport-Club Freiburg", "date": "2027-03-12", "time": "20:30" },
+                { "home": "Bayer 04 Leverkusen", "away": "1. FC Köln", "date": "2027-03-13", "time": "15:30" },
+                { "home": "Borussia Mönchengladbach", "away": "Hamburger SV", "date": "2027-03-13", "time": "15:30" },
+                { "home": "Eintracht Frankfurt", "away": "SC Paderborn 07", "date": "2027-03-13", "time": "15:30" },
+                { "home": "FC Augsburg", "away": "RB Leipzig", "date": "2027-03-13", "time": "15:30" },
+                { "home": "FC Bayern München", "away": "1. FSV Mainz 05", "date": "2027-03-13", "time": "15:30" },
+                { "home": "FC Schalke 04", "away": "TSG Hoffenheim", "date": "2027-03-13", "time": "15:30" },
+                { "home": "SV Elversberg", "away": "Borussia Dortmund", "date": "2027-03-13", "time": "15:30" },
+                { "home": "SV Werder Bremen", "away": "VfB Stuttgart", "date": "2027-03-13", "time": "15:30" }
+            ],
+            "27": [
+                { "home": "1. FC Köln", "away": "FC Bayern München", "date": "2027-03-19", "time": "20:30" },
+                { "home": "1. FSV Mainz 05", "away": "FC Augsburg", "date": "2027-03-20", "time": "15:30" },
+                { "home": "Borussia Dortmund", "away": "Borussia Mönchengladbach", "date": "2027-03-20", "time": "15:30" },
+                { "home": "Hamburger SV", "away": "SV Werder Bremen", "date": "2027-03-20", "time": "15:30" },
+                { "home": "RB Leipzig", "away": "1. FC Union Berlin", "date": "2027-03-20", "time": "15:30" },
+                { "home": "SC Paderborn 07", "away": "Bayer 04 Leverkusen", "date": "2027-03-20", "time": "15:30" },
+                { "home": "Sport-Club Freiburg", "away": "SV Elversberg", "date": "2027-03-20", "time": "15:30" },
+                { "home": "TSG Hoffenheim", "away": "Eintracht Frankfurt", "date": "2027-03-20", "time": "15:30" },
+                { "home": "VfB Stuttgart", "away": "FC Schalke 04", "date": "2027-03-20", "time": "15:30" }
+            ],
+            "28": [
+                { "home": "1. FC Union Berlin", "away": "1. FSV Mainz 05", "date": "2027-04-02", "time": "20:30" },
+                { "home": "Bayer 04 Leverkusen", "away": "Borussia Dortmund", "date": "2027-04-03", "time": "15:30" },
+                { "home": "Borussia Mönchengladbach", "away": "SV Werder Bremen", "date": "2027-04-03", "time": "15:30" },
+                { "home": "Eintracht Frankfurt", "away": "VfB Stuttgart", "date": "2027-04-03", "time": "15:30" },
+                { "home": "FC Augsburg", "away": "TSG Hoffenheim", "date": "2027-04-03", "time": "15:30" },
+                { "home": "FC Bayern München", "away": "Hamburger SV", "date": "2027-04-03", "time": "15:30" },
+                { "home": "FC Schalke 04", "away": "SC Paderborn 07", "date": "2027-04-03", "time": "15:30" },
+                { "home": "RB Leipzig", "away": "Sport-Club Freiburg", "date": "2027-04-03", "time": "15:30" },
+                { "home": "SV Elversberg", "away": "1. FC Köln", "date": "2027-04-03", "time": "15:30" }
+            ],
+            "29": [
+                { "home": "1. FC Köln", "away": "FC Augsburg", "date": "2027-04-09", "time": "20:30" },
+                { "home": "1. FSV Mainz 05", "away": "RB Leipzig", "date": "2027-04-10", "time": "15:30" },
+                { "home": "Borussia Dortmund", "away": "FC Schalke 04", "date": "2027-04-10", "time": "15:30" },
+                { "home": "Borussia Mönchengladbach", "away": "Bayer 04 Leverkusen", "date": "2027-04-10", "time": "15:30" },
+                { "home": "Hamburger SV", "away": "1. FC Union Berlin", "date": "2027-04-10", "time": "15:30" },
+                { "home": "SC Paderborn 07", "away": "FC Bayern München", "date": "2027-04-10", "time": "15:30" },
+                { "home": "SV Werder Bremen", "away": "Eintracht Frankfurt", "date": "2027-04-10", "time": "15:30" },
+                { "home": "TSG Hoffenheim", "away": "Sport-Club Freiburg", "date": "2027-04-10", "time": "15:30" },
+                { "home": "VfB Stuttgart", "away": "SV Elversberg", "date": "2027-04-10", "time": "15:30" }
+            ],
+            "30": [
+                { "home": "1. FC Union Berlin", "away": "VfB Stuttgart", "date": "2027-04-16", "time": "20:30" },
+                { "home": "Bayer 04 Leverkusen", "away": "SV Werder Bremen", "date": "2027-04-17", "time": "15:30" },
+                { "home": "Eintracht Frankfurt", "away": "Borussia Mönchengladbach", "date": "2027-04-17", "time": "15:30" },
+                { "home": "FC Augsburg", "away": "Borussia Dortmund", "date": "2027-04-17", "time": "15:30" },
+                { "home": "FC Bayern München", "away": "TSG Hoffenheim", "date": "2027-04-17", "time": "15:30" },
+                { "home": "FC Schalke 04", "away": "Hamburger SV", "date": "2027-04-17", "time": "15:30" },
+                { "home": "RB Leipzig", "away": "1. FC Köln", "date": "2027-04-17", "time": "15:30" },
+                { "home": "Sport-Club Freiburg", "away": "1. FSV Mainz 05", "date": "2027-04-17", "time": "15:30" },
+                { "home": "SV Elversberg", "away": "SC Paderborn 07", "date": "2027-04-17", "time": "15:30" }
+            ],
+            "31": [
+                { "home": "1. FC Köln", "away": "1. FSV Mainz 05", "date": "2027-04-23", "time": "20:30" },
+                { "home": "Borussia Dortmund", "away": "RB Leipzig", "date": "2027-04-24", "time": "15:30" },
+                { "home": "Borussia Mönchengladbach", "away": "FC Schalke 04", "date": "2027-04-24", "time": "15:30" },
+                { "home": "Eintracht Frankfurt", "away": "Bayer 04 Leverkusen", "date": "2027-04-24", "time": "15:30" },
+                { "home": "Hamburger SV", "away": "SV Elversberg", "date": "2027-04-24", "time": "15:30" },
+                { "home": "SC Paderborn 07", "away": "FC Augsburg", "date": "2027-04-24", "time": "15:30" },
+                { "home": "SV Werder Bremen", "away": "FC Bayern München", "date": "2027-04-24", "time": "15:30" },
+                { "home": "TSG Hoffenheim", "away": "1. FC Union Berlin", "date": "2027-04-24", "time": "15:30" },
+                { "home": "VfB Stuttgart", "away": "Sport-Club Freiburg", "date": "2027-04-24", "time": "15:30" }
+            ],
+            "32": [
+                { "home": "1. FC Union Berlin", "away": "SV Werder Bremen", "date": "2027-05-07", "time": "20:30" },
+                { "home": "1. FSV Mainz 05", "away": "Borussia Dortmund", "date": "2027-05-08", "time": "15:30" },
+                { "home": "Bayer 04 Leverkusen", "away": "Hamburger SV", "date": "2027-05-08", "time": "15:30" },
+                { "home": "FC Augsburg", "away": "VfB Stuttgart", "date": "2027-05-08", "time": "15:30" },
+                { "home": "FC Bayern München", "away": "Borussia Mönchengladbach", "date": "2027-05-08", "time": "15:30" },
+                { "home": "FC Schalke 04", "away": "Eintracht Frankfurt", "date": "2027-05-08", "time": "15:30" },
+                { "home": "RB Leipzig", "away": "SC Paderborn 07", "date": "2027-05-08", "time": "15:30" },
+                { "home": "Sport-Club Freiburg", "away": "1. FC Köln", "date": "2027-05-08", "time": "15:30" },
+                { "home": "SV Elversberg", "away": "TSG Hoffenheim", "date": "2027-05-08", "time": "15:30" }
+            ],
+            "33": [
+                { "home": "Bayer 04 Leverkusen", "away": "FC Bayern München", "date": "2027-05-14", "time": "20:30" },
+                { "home": "Borussia Dortmund", "away": "1. FC Köln", "date": "2027-05-15", "time": "15:30" },
+                { "home": "Borussia Mönchengladbach", "away": "FC Augsburg", "date": "2027-05-15", "time": "15:30" },
+                { "home": "Eintracht Frankfurt", "away": "SV Elversberg", "date": "2027-05-15", "time": "15:30" },
+                { "home": "Hamburger SV", "away": "Sport-Club Freiburg", "date": "2027-05-15", "time": "15:30" },
+                { "home": "SC Paderborn 07", "away": "1. FC Union Berlin", "date": "2027-05-15", "time": "15:30" },
+                { "home": "SV Werder Bremen", "away": "FC Schalke 04", "date": "2027-05-15", "time": "15:30" },
+                { "home": "TSG Hoffenheim", "away": "1. FSV Mainz 05", "date": "2027-05-15", "time": "15:30" },
+                { "home": "VfB Stuttgart", "away": "RB Leipzig", "date": "2027-05-15", "time": "15:30" }
+            ],
+            "34": [
+                { "home": "1. FC Köln", "away": "SC Paderborn 07", "date": "2027-05-22", "time": "15:30" },
+                { "home": "1. FC Union Berlin", "away": "Borussia Mönchengladbach", "date": "2027-05-22", "time": "15:30" },
+                { "home": "1. FSV Mainz 05", "away": "VfB Stuttgart", "date": "2027-05-22", "time": "15:30" },
+                { "home": "FC Augsburg", "away": "Hamburger SV", "date": "2027-05-22", "time": "15:30" },
+                { "home": "FC Bayern München", "away": "Eintracht Frankfurt", "date": "2027-05-22", "time": "15:30" },
+                { "home": "FC Schalke 04", "away": "Bayer 04 Leverkusen", "date": "2027-05-22", "time": "15:30" },
+                { "home": "RB Leipzig", "away": "TSG Hoffenheim", "date": "2027-05-22", "time": "15:30" },
+                { "home": "Sport-Club Freiburg", "away": "Borussia Dortmund", "date": "2027-05-22", "time": "15:30" },
+                { "home": "SV Elversberg", "away": "SV Werder Bremen", "date": "2027-05-22", "time": "15:30" }
             ]
-            // ... (Restliche Spieltage 3-34 analog)
         }
     };
 
@@ -661,12 +1015,12 @@
         }
     }
 
-    // Cloud Laden (Spiele & Tipps)
     async function loadFromCloud() {
         try {
-            let [matchesRes, tipsRes] = await Promise.all([
+            let [matchesRes, tipsRes, pwRes] = await Promise.all([
                 supabaseClient.from('bundesliga_spiele').select('*'),
-                supabaseClient.from('bundesliga_tipps').select('*')
+                supabaseClient.from('bundesliga_tipps').select('*'),
+                supabaseClient.from('bundesliga_passwoerter').select('*')
             ]);
 
             if (matchesRes.data && Array.isArray(matchesRes.data)) {
@@ -691,8 +1045,13 @@
                 });
             }
 
-            if (tipsRes.data) {
-                allTips = tipsRes.data;
+            if (tipsRes.data) allTips = tipsRes.data;
+
+            if (pwRes.data) {
+                playerPasswords = {};
+                pwRes.data.forEach(p => {
+                    playerPasswords[p.player_name] = p.password;
+                });
             }
         } catch (e) {
             console.log('Ladehinweis:', e);
@@ -744,21 +1103,96 @@
         if (isAdmin) renderInputForm();
     }
 
-    // Tipp Modal öffnen / schließen
-    function openTipModal(matchId, homeTeam, awayTeam) {
+    // Passwort Modal Funktionen
+    function openPasswordModal() {
+        document.getElementById('pwTipperName').textContent = currentTipper;
+        document.getElementById('newPasswordInput').value = '';
+        document.getElementById('passwordModal').style.display = 'flex';
+    }
+
+    function closePasswordModal() {
+        document.getElementById('passwordModal').style.display = 'none';
+    }
+
+    async function saveNewPassword() {
+        let newPw = document.getElementById('newPasswordInput').value.trim();
+        if (!newPw) {
+            alert("Bitte ein gültiges Passwort eingeben!");
+            return;
+        }
+
+        let { error } = await supabaseClient.from('bundesliga_passwoerter').upsert({
+            player_name: currentTipper,
+            password: newPw
+        }, { onConflict: 'player_name' });
+
+        if (error) {
+            alert("Fehler beim Speichern des Passworts: " + error.message);
+        } else {
+            playerPasswords[currentTipper] = newPw;
+            alert(`Passwort für ${currentTipper} erfolgreich gespeichert!`);
+            closePasswordModal();
+        }
+    }
+
+    // Tippen starten -> erst Passwort abfragen falls hinterlegt
+    function requestTipAuthentication(matchId, homeTeam, awayTeam) {
+        pendingMatchId = matchId;
+        pendingHome = homeTeam;
+        pendingAway = awayTeam;
+
+        let registeredPw = playerPasswords[currentTipper];
+
+        // Wenn noch kein Passwort vergeben wurde, direkt freigeben oder zum Einrichten leiten
+        if (!registeredPw) {
+            let setupNow = confirm(`Für "${currentTipper}" ist noch kein Passwort hinterlegt. Möchtest du jetzt eines einrichten? (Du kannst auch ohne fortfahren)`);
+            if (setupNow) {
+                openPasswordModal();
+                return;
+            } else {
+                openTipModalDirect(matchId, homeTeam, awayTeam);
+                return;
+            }
+        }
+
+        // Passwort abfragen
+        document.getElementById('authTipperName').textContent = currentTipper;
+        document.getElementById('authPasswordInput').value = '';
+        document.getElementById('authModal').style.display = 'flex';
+    }
+
+    function closeAuthModal() {
+        document.getElementById('authModal').style.display = 'none';
+        pendingMatchId = null;
+    }
+
+    function verifyAndOpenTipModal() {
+        let enteredPw = document.getElementById('authPasswordInput').value;
+        let registeredPw = playerPasswords[currentTipper];
+
+        if (enteredPw === registeredPw) {
+            closeAuthModal();
+            openTipModalDirect(pendingMatchId, pendingHome, pendingAway);
+        } else {
+            alert("Falsches Passwort!");
+        }
+    }
+
+    function openTipModalDirect(matchId, homeTeam, awayTeam) {
         activeModalMatchId = matchId;
         document.getElementById('modalMatchTitle').textContent = `${homeTeam} vs ${awayTeam}`;
         document.getElementById('modalHomeLabel').textContent = homeTeam;
         document.getElementById('modalAwayLabel').textContent = awayTeam;
         document.getElementById('modalTipperName').textContent = currentTipper;
 
-        // Bereits vorhandener Tipp laden falls vorhanden
         let existing = allTips.find(t => t.match_id === matchId && t.player_name === currentTipper);
         document.getElementById('modalHomeTip').value = existing ? existing.home_tip : 0;
         document.getElementById('modalAwayTip').value = existing ? existing.away_tip : 0;
 
         document.getElementById('tipModal').style.display = 'flex';
     }
+
+    let activeModalMatchId = null;
 
     function closeTipModal() {
         document.getElementById('tipModal').style.display = 'none';
@@ -793,23 +1227,16 @@
         }
     }
 
-    // Punkterechnung für die Gesamtwertung
     function calculatePoints(tipH, tipA, resH, resA) {
         if (resH === null || resA === null || resH === undefined || resA === undefined) return 0;
-        
-        // Exaktes Ergebnis = 3 Pkt
         if (tipH === resH && tipA === resA) return 3;
 
         let tipDiff = tipH - tipA;
         let resDiff = resH - resA;
-
-        // Richtige Tordifferenz = 2 Pkt
         if (tipDiff === resDiff) return 2;
 
         let tipTendency = tipH > tipA ? 'home' : (tipH < tipA ? 'away' : 'draw');
         let resTendency = resH > resA ? 'home' : (resH < resA ? 'draw' : 'away');
-
-        // Richtige Tendenz = 1 Pkt
         if (tipTendency === resTendency) return 1;
 
         return 0;
@@ -817,11 +1244,10 @@
 
     function openLeaderboardModal() {
         let scores = {};
-        ['Langen', 'Pelle', 'Kokser', 'Hörmi', 'Tom'].forEach(p => {
+        ['Langen', 'Kokser'].forEach(p => {
             scores[p] = { points: 0, exact: 0 };
         });
 
-        // Alle Spiele durchgehen und Punkte summieren
         Object.values(leagueData.matches).forEach(matchList => {
             if (!Array.isArray(matchList)) return;
             matchList.forEach(m => {
@@ -846,7 +1272,7 @@
 
         sorted.forEach(([player, data], idx) => {
             let tr = document.createElement('tr');
-            let rankIcon = idx === 0 ? '👑' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}.`));
+            let rankIcon = idx === 0 ? '👑' : `${idx + 1}.`;
             if (idx === 0) tr.classList.add('rank-first');
 
             tr.innerHTML = `
@@ -888,7 +1314,6 @@
                 resultDisplay += `<div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 2px;">⚽ ${scorersText}</div>`;
             }
 
-            // Tipps für diese Partie anzeigen
             let matchTips = allTips.filter(t => t.match_id === matchId);
             let tipsHtml = `<div class="tips-container">`;
             matchTips.forEach(t => {
@@ -911,7 +1336,7 @@
                 <td style="text-align: center;">${resultDisplay}</td>
                 <td class="${awayClass}">${m.away}</td>
                 <td style="text-align: center;">
-                    <button class="matchday-btn" style="font-size: 0.7rem; padding: 4px 8px;" onclick="openTipModal('${matchId}', '${m.home.replace(/'/g, "\\'")}', '${m.away.replace(/'/g, "\\'")}')">🎯 Tippen</button>
+                    <button class="matchday-btn" style="font-size: 0.7rem; padding: 4px 8px;" onclick="requestTipAuthentication('${matchId}', '${m.home.replace(/'/g, "\\'")}', '${m.away.replace(/'/g, "\\'")}')">🎯 Tippen</button>
                     ${tipsHtml}
                 </td>
                 <td style="text-align: center;">${isAdmin ? `<button class="btn-danger" onclick="deleteMatchResult(${idx})">✕</button>` : ''}</td>
@@ -920,7 +1345,6 @@
         });
     }
 
-    // (Standard Bundesliga Tabellen- und Statistik-Rendermethoden wie gehabt)
     function renderTable() {
         let tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
@@ -1042,13 +1466,12 @@
         }
     }
 
-    // Echtzeit-Updates abonnieren
     supabaseClient.channel('public:bundesliga_all')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'bundesliga_spiele' }, () => loadFromCloud())
         .on('postgres_changes', { event: '*', schema: 'public', table: 'bundesliga_tipps' }, () => loadFromCloud())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'bundesliga_passwoerter' }, () => loadFromCloud())
         .subscribe();
 
-    // Init beim Start
     loadFromCloud();
 </script>
 
