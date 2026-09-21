@@ -381,7 +381,7 @@
     <div class="subtitle" id="leagueSubtitle">1. Bundesliga — Saison 2026/27 & Tippspiel</div>
     <div class="meta-info">
         <span>⚡ Web-App & Management: Jürgen Schützendorf</span>
-        <span class="supabase-badge">● Live-Sync aktiv</span>
+        <span class="supabase-badge">● Cloud-DB aktiv</span>
     </div>
 
     <!-- TIPPSPIEL LEISTE -->
@@ -1129,14 +1129,12 @@
             alert("Fehler beim Speichern des Passworts: " + error.message);
         } else {
             playerPasswords[currentTipper] = newPw;
-            // Gleich als eingeloggt merken für diese Sitzung
             sessionStorage.setItem('auth_' + currentTipper, 'true');
             alert(`Passwort für ${currentTipper} erfolgreich gespeichert & freigeschaltet!`);
             closePasswordModal();
         }
     }
 
-    // Prüfen, ob der Tipper für diese Browser-Sitzung bereits freigeschaltet ist
     function requestTipAuthentication(matchId, homeTeam, awayTeam) {
         pendingMatchId = matchId;
         pendingHome = homeTeam;
@@ -1144,7 +1142,6 @@
 
         let registeredPw = playerPasswords[currentTipper];
 
-        // Wenn noch kein Passwort vergeben wurde
         if (!registeredPw) {
             let setupNow = confirm(`Für "${currentTipper}" ist noch kein Passwort hinterlegt. Möchtest du jetzt eines einrichten?`);
             if (setupNow) {
@@ -1156,13 +1153,11 @@
             }
         }
 
-        // Wenn in dieser Sitzung das Passwort schonmal richtig eingegeben wurde -> direkt öffnen!
         if (sessionStorage.getItem('auth_' + currentTipper) === 'true') {
             openTipModalDirect(matchId, homeTeam, awayTeam);
             return;
         }
 
-        // Ansonsten Passwort abfragen
         document.getElementById('authTipperName').textContent = currentTipper;
         document.getElementById('authPasswordInput').value = '';
         document.getElementById('authModal').style.display = 'flex';
@@ -1178,7 +1173,6 @@
         let registeredPw = playerPasswords[currentTipper];
 
         if (enteredPw === registeredPw) {
-            // Als eingeloggt für diese Browser-Sitzung merken
             sessionStorage.setItem('auth_' + currentTipper, 'true');
             closeAuthModal();
             openTipModalDirect(pendingMatchId, pendingHome, pendingAway);
@@ -1230,6 +1224,7 @@
             alert('Fehler beim Speichern des Tipps: ' + error.message);
         } else {
             closeTipModal();
+            // Direkt die Tipps frisch aus der Cloud holen und Tabelle aktualisieren
             let { data } = await supabaseClient.from('bundesliga_tipps').select('*');
             if (data) allTips = data;
             renderMatchdayTable();
@@ -1475,12 +1470,7 @@
         }
     }
 
-    supabaseClient.channel('public:bundesliga_all')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'bundesliga_spiele' }, () => loadFromCloud())
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'bundesliga_tipps' }, () => loadFromCloud())
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'bundesliga_passwoerter' }, () => loadFromCloud())
-        .subscribe();
-
+    // Init beim Start
     loadFromCloud();
 </script>
 
