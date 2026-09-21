@@ -274,7 +274,7 @@
             text-transform: uppercase;
         }
 
-        /* Spielerfoto in der Torschützenliste (mit contain, damit nichts abgeschnitten wird) */
+        /* Spielerfoto in der Torschützenliste */
         .scorer-row-content {
             display: flex;
             align-items: center;
@@ -287,6 +287,19 @@
             object-fit: contain;
             background: #21262d;
             border: 1px solid var(--bayern-red);
+            flex-shrink: 0;
+        }
+
+        /* Vereinslogo in Tabellen & Spielplan */
+        .team-cell-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .team-mini-logo {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
             flex-shrink: 0;
         }
 
@@ -648,6 +661,7 @@
     let playerPasswords = {};
     let allTips = [];
     let playerPhotos = {};
+    let teamLogos = {};
     let pendingMatchId = null;
     let pendingHome = '';
     let pendingAway = '';
@@ -1071,11 +1085,12 @@
 
     async function loadFromCloud(showAlert = false) {
         try {
-            let [matchesRes, tipsRes, pwRes, photosRes] = await Promise.all([
+            let [matchesRes, tipsRes, pwRes, photosRes, logosRes] = await Promise.all([
                 supabaseClient.from('bundesliga_spiele').select('*'),
                 supabaseClient.from('bundesliga_tipps').select('*'),
                 supabaseClient.from('bundesliga_passwoerter').select('*'),
-                supabaseClient.from('bundesliga_spieler_fotos').select('*')
+                supabaseClient.from('bundesliga_spieler_fotos').select('*'),
+                supabaseClient.from('bundesliga_vereins_logos').select('*')
             ]);
 
             if (matchesRes.data && Array.isArray(matchesRes.data)) {
@@ -1114,6 +1129,15 @@
                 photosRes.data.forEach(item => {
                     if (item.player_name && item.photo_url) {
                         playerPhotos[item.player_name.trim().toLowerCase()] = item.photo_url;
+                    }
+                });
+            }
+
+            if (logosRes.data) {
+                teamLogos = {};
+                logosRes.data.forEach(item => {
+                    if (item.team_name && item.logo_url) {
+                        teamLogos[item.team_name.trim().toLowerCase()] = item.logo_url;
                     }
                 });
             }
@@ -1170,6 +1194,17 @@
         renderTable();
         renderBayernStats();
         if (isAdmin) renderInputForm();
+    }
+
+    function getTeamHtml(teamName, alignRight = false) {
+        let logoUrl = teamLogos[teamName.trim().toLowerCase()];
+        let logoHtml = logoUrl ? `<img src="${logoUrl}" alt="${teamName}" class="team-mini-logo">` : ``;
+
+        if (alignRight) {
+            return `<div class="team-cell-content" style="justify-content: flex-end;"><span>${teamName}</span>${logoHtml}</div>`;
+        } else {
+            return `<div class="team-cell-content">${logoHtml}<span>${teamName}</span></div>`;
+        }
     }
 
     function openPasswordModal() {
@@ -1374,8 +1409,6 @@
             let timeStr = m.time ? ` ${m.time} Uhr` : '';
             
             let isBayernMatch = (m.home === "FC Bayern München" || m.away === "FC Bayern München");
-            let homeClass = m.home === "FC Bayern München" ? 'bayern-highlight' : '';
-            let awayClass = m.away === "FC Bayern München" ? 'bayern-highlight' : '';
 
             let matchId = m.match_id || ("s" + leagueData.currentMatchday + "_" + m.home.trim().toLowerCase().replace(/[^a-z0-9]/g, "_") + "_vs_" + m.away.trim().toLowerCase().replace(/[^a-z0-9]/g, "_"));
             m.match_id = matchId;
@@ -1402,11 +1435,21 @@
             let tr = document.createElement('tr');
             if (isBayernMatch) tr.classList.add('bayern-match-row');
 
+            let homeCellContent = getTeamHtml(m.home, true);
+            let awayCellContent = getTeamHtml(m.away, false);
+
+            if (m.home === "FC Bayern München") {
+                homeCellContent = `<span class="bayern-highlight">${homeCellContent}</span>`;
+            }
+            if (m.away === "FC Bayern München") {
+                awayCellContent = `<span class="bayern-highlight">${awayCellContent}</span>`;
+            }
+
             tr.innerHTML = `
                 <td style="font-size: 0.8rem; color: #ffffff;">${formattedDate}${timeStr}</td>
-                <td class="${homeClass}" style="text-align: right;">${m.home}</td>
+                <td style="text-align: right;">${homeCellContent}</td>
                 <td style="text-align: center;">${resultDisplay}</td>
-                <td class="${awayClass}">${m.away}</td>
+                <td>${awayCellContent}</td>
                 <td style="text-align: center;">
                     <button class="matchday-btn" style="font-size: 0.7rem; padding: 4px 8px;" onclick="requestTipAuthentication('${matchId}', '${m.home.replace(/'/g, "\\'")}', '${m.away.replace(/'/g, "\\'")}')">🎯 Tippen</button>
                     ${tipsHtml}
@@ -1445,7 +1488,10 @@
             else if (idx >= sorted.length - 3) tr.classList.add('rank-last');
             if (s.name === "FC Bayern München") tr.classList.add('bayern-team-row');
             let diff = s.goalsFor - s.goalsAgainst;
-            tr.innerHTML = `<td><strong>${idx + 1}.</strong></td><td>${s.name}</td><td style="text-align: center;">${s.played}</td><td style="text-align: center;">${s.won}</td><td style="text-align: center;">${s.draw}</td><td style="text-align: center;">${s.lost}</td><td style="text-align: center;">${s.goalsFor}:${s.goalsAgainst}</td><td style="text-align: center;">${diff > 0 ? '+' : ''}${diff}</td><td style="text-align: center; font-weight: bold;">${s.points}</td>`;
+
+            let teamCellHtml = getTeamHtml(s.name, false);
+
+            tr.innerHTML = `<td><strong>${idx + 1}.</strong></td><td>${teamCellHtml}</td><td style="text-align: center;">${s.played}</td><td style="text-align: center;">${s.won}</td><td style="text-align: center;">${s.draw}</td><td style="text-align: center;">${s.lost}</td><td style="text-align: center;">${s.goalsFor}:${s.goalsAgainst}</td><td style="text-align: center;">${diff > 0 ? '+' : ''}${diff}</td><td style="text-align: center; font-weight: bold;">${s.points}</td>`;
             tbody.appendChild(tr);
         });
     }
