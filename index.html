@@ -3,1611 +3,767 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FC Bayern München — Bundesliga Spielplan, Tabelle & Tippspiel 2026/27</title>
-    <!-- Supabase Client Bibliothek laden -->
+    <title>World Grand Prix 2026 — Turnierübersicht</title>
+    <!-- Supabase JS Client laden -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --bg-color: #0b0f19;
-            --card-bg: #131b2e;
-            --text-color: #f0f6fc;
-            --text-muted: #8b949e;
-            --border-color: #30363d;
-            --bayern-red: #dc052d;
-            --bayern-red-hover: #b00424;
-            --bayern-dark: #86001a;
-            --accent-green: rgba(46, 160, 67, 0.25);
-            --accent-yellow: rgba(227, 179, 64, 0.22);
-            --bayern-gold: #ffcc00;
-            --bayern-bright-red: #ff334b;
-        }
-
         * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: #0f172a;
+            color: #f8fafc;
             margin: 0;
-            padding: 15px;
+            padding: 20px 15px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; position: relative; }
+        
+        .app-main-header { text-align: center; margin-bottom: 25px; }
+        .app-main-header h1 { color: #f59e0b; font-size: 26px; font-weight: 900; margin: 0; letter-spacing: 1px; text-transform: uppercase; }
+        .app-main-header .app-subtitle { color: #94a3b8; font-size: 13px; font-weight: 600; margin-top: 4px; }
+
+        /* Filter / Turnierbaum Navigation */
+        .filter-nav {
             display: flex;
-            justify-content: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1000px;
-            background: var(--card-bg);
-            border: 1px solid rgba(220, 5, 45, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(220, 5, 45, 0.15);
-        }
-
-        /* Banner Wrapper: Zentriert das Banner in der Kachel */
-        .banner-wrapper {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            margin-bottom: 15px;
-            overflow: hidden;
-        }
-
-        /* Banner Styling: Roter Rahmen schmiegt sich exakt um das Bild */
-        .app-banner {
-            width: auto;
-            max-width: 100%;
-            height: auto;
-            max-height: 250px;
-            object-fit: contain;
-            border-radius: 6px;
-            border: 2px solid var(--bayern-red);
-            box-shadow: 0 4px 15px rgba(220, 5, 45, 0.3);
-            display: block;
-        }
-
-        /* Optimierung für Handys */
-        @media (max-width: 600px) {
-            .app-banner {
-                max-height: 140px;
-            }
-        }
-
-        .title-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 5px;
-        }
-
-        .header-logo {
-            width: 55px;
-            height: 55px;
-            border-radius: 50%;
-            object-fit: contain;
-            border: 2px solid var(--bayern-red);
-            background: #ffffff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-            padding: 2px;
-            box-sizing: border-box;
-            flex-shrink: 0;
-        }
-
-        h2 {
-            text-align: center;
-            margin: 0;
-            color: #ffffff;
-            font-size: 1.6rem;
-            font-weight: 800;
-        }
-        h2 span {
-            color: var(--bayern-red);
-        }
-
-        .subtitle {
-            text-align: center;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        .meta-info {
-            text-align: center;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
             flex-wrap: wrap;
-        }
-
-        .supabase-badge {
-            color: #3fb950;
-            background: rgba(46, 160, 67, 0.15);
-            padding: 2px 6px;
-            border-radius: 4px;
-            border: 1px solid rgba(46, 160, 67, 0.3);
-            font-weight: 600;
-        }
-
-        /* Tippspiel Header Leiste */
-        .tippspiel-bar {
-            background: #1b1622;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px 15px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .section-box {
-            background: #0b0f19;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-
-        .section-header {
-            background-color: var(--bayern-red);
-            color: #ffffff;
-            border: 1px solid var(--border-color);
-            padding: 10px 15px;
-            font-weight: bold;
-            text-align: center;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 8px rgba(220, 5, 45, 0.3);
-        }
-
-        .matchday-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
-        }
-
-        .matchday-btn {
-            background: #21262d;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-        .matchday-btn:hover { background: var(--bayern-dark); border-color: var(--bayern-red); }
-
-        .bayern-highlight { 
-            color: var(--bayern-bright-red) !important; 
-            font-weight: bold; 
-        }
-
-        tr.bayern-match-row {
-            background: rgba(220, 5, 45, 0.12);
-            border-left: 3px solid var(--bayern-red);
-            border-right: 3px solid var(--bayern-red);
-        }
-        tr.bayern-match-row td {
-            border-top: 1px solid rgba(220, 5, 45, 0.3);
-            border-bottom: 1px solid rgba(220, 5, 45, 0.3);
-        }
-
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 0.85rem;
-        }
-        th {
-            background-color: var(--bayern-dark);
-            color: #ffffff;
-            padding: 10px 8px;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            white-space: nowrap;
-            border-bottom: 2px solid var(--bayern-red);
-        }
-        td {
-            padding: 10px 8px;
-            border-bottom: 1px solid var(--border-color);
-            white-space: nowrap;
-        }
-        tr:hover { background-color: rgba(220, 5, 45, 0.03); }
-
-        tr.rank-first td {
-            background: var(--accent-green);
-            color: #3fb950;
-            font-weight: bold;
-        }
-        tr.rank-last td {
-            background: var(--accent-yellow);
-            color: #e3b341;
-        }
-        tr.bayern-team-row td {
-            font-weight: bold;
-            color: var(--bayern-bright-red);
-            background: rgba(220, 5, 45, 0.15);
-            border-top: 1px solid rgba(220, 5, 45, 0.4);
-            border-bottom: 1px solid rgba(220, 5, 45, 0.4);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .stat-card {
-            background: #1b1622;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 10px;
-            text-align: center;
-        }
-        .stat-value {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--bayern-bright-red);
-            margin-top: 4px;
-        }
-        .stat-label {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        /* Spielerfoto in der Torschützenliste */
-        .scorer-row-content {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .player-mini-avatar {
-            width: 48px;
-            height: 34px;
-            border-radius: 5px;
-            object-fit: contain;
-            background: #21262d;
-            border: 1px solid var(--bayern-red);
-            flex-shrink: 0;
-        }
-
-        /* Vereinslogo in Tabellen & Spielplan */
-        .team-cell-content {
-            display: flex;
-            align-items: center;
+            justify-content: center;
             gap: 8px;
-        }
-        .team-mini-logo {
-            width: 22px;
-            height: 22px;
-            object-fit: contain;
-            flex-shrink: 0;
-        }
-
-        /* Tipp-Badges unter Partien */
-        .tips-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            margin-top: 4px;
-        }
-        .tip-badge {
-            font-size: 0.65rem;
-            font-weight: bold;
-            padding: 2px 5px;
-            border-radius: 4px;
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-        }
-
-        /* Modal */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(4px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            padding: 15px;
-        }
-        .modal-card {
-            background: #131b2e;
-            border: 1px solid var(--bayern-red);
+            margin-bottom: 30px;
+            background: #1e293b;
+            padding: 10px;
             border-radius: 12px;
-            padding: 20px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #334155;
         }
-
-        .admin-toggle-wrapper {
-            text-align: right;
-            margin-top: 15px;
-        }
-        .admin-toggle-btn {
-            background: transparent;
-            border: 1px dashed var(--border-color);
-            color: var(--text-muted);
-            padding: 6px 12px;
+        .filter-btn {
+            background-color: #0f172a;
+            color: #94a3b8;
+            border: 1px solid #334155;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 700;
             border-radius: 6px;
-            font-size: 0.75rem;
             cursor: pointer;
+            text-transform: uppercase;
             transition: all 0.2s;
         }
-        .admin-toggle-btn:hover {
-            color: var(--bayern-bright-red);
-            border-color: var(--bayern-red);
+        .filter-btn:hover {
+            border-color: #f59e0b;
+            color: #f8fafc;
+        }
+        .filter-btn.active {
+            background-color: #f59e0b;
+            color: #0f172a;
+            border-color: #f59e0b;
         }
 
-        .admin-card {
-            background: #1b1622;
-            border: 1px solid var(--bayern-red);
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-            display: none;
+        /* Info-Boxen Design */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
         }
-        .match-input-card {
-            background: #131b2e;
-            border: 1px solid var(--border-color);
-            padding: 10px;
+        @media (max-width: 768px) {
+            .info-grid { grid-template-columns: 1fr; }
+        }
+        .info-card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 13px;
+            color: #cbd5e1;
+        }
+        .info-card h3 {
+            color: #f59e0b;
+            font-size: 14px;
+            margin-top: 0;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 5px;
+        }
+        .info-card ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+        .info-card li {
+            margin-bottom: 4px;
+        }
+
+        .day-section { margin-bottom: 35px; }
+        .day-title { font-size: 16px; font-weight: 800; color: #f59e0b; border-bottom: 2px solid #334155; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .matches-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+
+        .match-card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: border-color 0.2s;
+        }
+        .match-card:hover { border-color: #f59e0b; }
+
+        .match-header { font-size: 11px; font-weight: bold; color: #64748b; text-transform: uppercase; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        
+        .player-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 8px;
             border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .player-row.winner {
+            color: #4ade80;
+            font-weight: bold;
+            background-color: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+        }
+        .player-name { 
+            flex: 1; 
+            cursor: pointer; 
+            transition: color 0.15s;
+        }
+        .player-name:hover {
+            color: #38bdf8;
+            text-decoration: underline;
+        }
+        
+        .sets-score {
+            background: #0f172a;
+            color: #f59e0b;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-weight: 900;
+            font-family: monospace;
+            font-size: 14px;
+            border: 1px solid #334155;
+            min-width: 35px;
+            text-align: center;
+        }
+        .sets-score.winner-score {
+            background-color: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            border-color: rgba(34, 197, 94, 0.4);
+        }
+        .sets-score.empty {
+            color: #64748b;
+        }
+        .time-badge {
+            background: rgba(56, 189, 248, 0.1);
+            color: #38bdf8;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 12px;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .legs-detail {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #334155;
+            font-size: 11px;
+            color: #94a3b8;
+            display: flex;
+            justify-content: space-between;
+            font-family: monospace;
+        }
+
+        /* MODAL FÜR SPIELER-STECKBRIEF BILDER */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            backdrop-filter: blur(5px);
+        }
+        .modal-card {
+            background: transparent;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            text-align: center;
+            animation: modalPop 0.25s ease-out;
+        }
+        @keyframes modalPop {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .modal-close {
+            position: absolute;
+            top: -40px; right: 0;
+            background: #f59e0b;
+            border: none;
+            font-size: 20px;
+            font-weight: bold;
+            color: #0f172a;
+            cursor: pointer;
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .modal-close:hover { background: #d97706; }
+        .modal-card img {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            border: 2px solid #334155;
+        }
+
+        /* Admin-Bereich Styles */
+        .admin-section {
+            background-color: #1e293b;
+            border: 2px dashed #f59e0b;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 50px;
+        }
+        .admin-section h2 {
+            color: #f59e0b;
+            font-size: 18px;
+            margin-top: 0;
+            text-transform: uppercase;
+        }
+        .admin-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .admin-group {
             margin-bottom: 10px;
         }
-        .form-grid {
-            display: grid;
-            grid-template-columns: 2fr 2fr repeat(2, 1fr);
-            gap: 8px;
-            align-items: end;
-        }
-        @media (max-width: 900px) {
-            .form-grid { grid-template-columns: 1fr 1fr; }
-            .form-grid .form-group-team { grid-column: span 2; }
-        }
-        .form-group label {
+        .admin-group label {
             display: block;
-            font-size: 0.65rem;
-            color: var(--text-muted);
-            margin-bottom: 3px;
+            font-size: 11px;
+            color: #94a3b8;
+            margin-bottom: 4px;
             text-transform: uppercase;
+            font-weight: bold;
         }
-        .form-control {
+        .admin-group input, .admin-group select {
             width: 100%;
-            padding: 6px;
-            background: #0b0f19;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            border-radius: 4px;
-            font-size: 0.8rem;
-        }
-        .form-control:focus { border-color: var(--bayern-red); outline: none; }
-
-        .btn {
-            background: var(--bayern-red);
-            color: #ffffff;
-            border: none;
-            padding: 10px 18px;
+            padding: 8px 10px;
+            background-color: #0f172a;
+            border: 1px solid #334155;
             border-radius: 6px;
+            color: #f8fafc;
+            font-size: 13px;
+        }
+        .admin-btn {
+            background-color: #f59e0b;
+            color: #0f172a;
+            border: none;
+            padding: 10px 20px;
             font-weight: bold;
+            border-radius: 6px;
             cursor: pointer;
             text-transform: uppercase;
-            font-size: 0.85rem;
             width: 100%;
-            margin-top: 10px;
-            transition: background 0.2s;
+            font-size: 14px;
         }
-        .btn:hover { background: var(--bayern-red-hover); }
+        .admin-btn:hover { background-color: #d97706; }
         
-        .btn-danger {
-            background: transparent;
-            border: none;
-            color: #f85149;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1rem;
+        .login-box {
+            text-align: center;
+            padding: 20px 0;
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        <div class="app-main-header">
+            <h1>🎯 World Grand Prix 2026</h1>
+            <div class="app-subtitle">Turnierübersicht & Live-Verwaltung</div>
+        </div>
 
-<div class="container">
-    <!-- Banner mit passgenauem Rahmen und App-Hintergrund drumherum -->
-    <div class="banner-wrapper">
-        <img src="https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/banner_Bayern.png" alt="FC Bayern Banner" class="app-banner">
-    </div>
+        <!-- Info-Sektion (Modus & TV) -->
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>📺 Live im TV & Stream</h3>
+                <ul>
+                    <li><strong>TV:</strong> SPORT1</li>
+                    <li><strong>Stream:</strong> SPORT1.de, DAZN</li>
+                    <li><strong>Stream:</strong> auf https://pluto.tv ist das Turnier ebenfalls gratis zu sehen</li>
+                </ul>
+            </div>
+            <div class="info-card">
+                <h3>⚙️ Modus & Format 2026</h3>
+                <ul>
+                    <li><strong>Besonderheit:</strong> Double-In / Double-Out (einziges Major)</li>
+                    <li><strong>Satzformat:</strong> Best of 5 Legs (kein Tie-Break)</li>
+                    <li><strong>Distanzen:</strong> 1. Runde (Best of 3) | AF & VF (Best of 5) | HF (Best of 9) | Finale (Best of 11)</li>
+                </ul>
+            </div>
+        </div>
 
-    <div class="title-row">
-        <img src="https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/logo%20fc%20bayern.png" alt="FC Bayern Logo" class="header-logo">
-        <h2>FC Bayern <span>München</span></h2>
-        <img src="https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/logo%20fc%20bayern.png" alt="FC Bayern Logo" class="header-logo">
-    </div>
-    <div class="subtitle" id="leagueSubtitle">1. Bundesliga — Saison 2026/27 & Tippspiel</div>
-    <div class="meta-info">
-        <span>⚡ Web-App & Management: Jürgen Schützendorf</span>
-        <span class="supabase-badge">● Cloud-DB aktiv</span>
-    </div>
+        <!-- Turnierbaum Filter-Navigation -->
+        <div class="filter-nav">
+            <button class="filter-btn active" onclick="filterRound('all', this)">Alle anzeigen</button>
+            <button class="filter-btn" onclick="filterRound('sec', this)">1. Runde (Mo/Di)</button>
+            <button class="filter-btn" onclick="filterRound('af', this)">Achtelfinale</button>
+            <button class="filter-btn" onclick="filterRound('vf', this)">Viertelfinale</button>
+            <button class="filter-btn" onclick="filterRound('hf', this)">Halbfinale</button>
+            <button class="filter-btn" onclick="filterRound('fin', this)">Finale</button>
+        </div>
 
-    <!-- TIPPSPIEL LEISTE -->
-    <div class="tippspiel-bar">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 1.2rem;">🎯</span>
+        <!-- 1. Runde (Sechzehntelfinale) -->
+        <div class="day-section" id="section-sec">
+            <div class="day-title">1. Runde (Sechzehntelfinale)</div>
+            <div style="margin-bottom: 20px;">
+                <div style="font-size: 13px; font-weight: bold; color: #94a3b8; margin-bottom: 10px;">Montag, 28.09.2026</div>
+                <div class="matches-grid">
+                    <div class="match-card">
+                        <div class="match-header"><span>1. Runde</span><span>Beendet</span></div>
+                        <div class="player-row winner"><span class="player-name" onclick="openPlayerModal('Danny Noppert')">Danny Noppert</span><span class="sets-score winner-score">2</span></div>
+                        <div class="player-row"><span class="player-name" onclick="openPlayerModal('Niko Springer')">Niko Springer</span><span class="sets-score">1</span></div>
+                        <div class="legs-detail"><span>Sätze: 3-0, 2-3, 3-0&nbsp;&nbsp;|&nbsp;&nbsp;Legs: 8-3</span></div>
+                    </div>
+                    <div class="match-card">
+                        <div class="match-header"><span>1. Runde</span><span>Beendet</span></div>
+                        <div class="player-row winner"><span class="player-name" onclick="openPlayerModal('Ross Smith')">Ross Smith</span><span class="sets-score winner-score">2</span></div>
+                        <div class="player-row"><span class="player-name" onclick="openPlayerModal('Cameron Menzies')">Cameron Menzies</span><span class="sets-score">1</span></div>
+                        <div class="legs-detail"><span>Sätze: 0-3, 3-2, 3-0&nbsp;&nbsp;|&nbsp;&nbsp;Legs: 6-5</span></div>
+                    </div>
+                    <div class="match-card">
+                        <div class="match-header"><span>1. Runde</span><span>Beendet</span></div>
+                        <div class="player-row winner"><span class="player-name" onclick="openPlayerModal('Nathan Aspinall')">Nathan Aspinall</span><span class="sets-score winner-score">2</span></div>
+                        <div class="player-row"><span class="player-name" onclick="openPlayerModal('Kevin Doets')">Kevin Doets</span><span class="sets-score">1</span></div>
+                        <div class="legs-detail"><span>Sätze: 1-3, 3-2, 3-2&nbsp;&nbsp;|&nbsp;&nbsp;Legs: 7-7</span></div>
+                    </div>
+                    <div class="match-card">
+                        <div class="match-header"><span>1. Runde</span><span>Beendet</span></div>
+                        <div class="player-row winner"><span class="player-name" onclick="openPlayerModal('Jonny Clayton')">Jonny Clayton</span><span class="sets-score winner-score">2</span></div>
+                        <div class="player-row"><span class="player-name" onclick="openPlayerModal('Krzysztof Ratajski')">Krzysztof Ratajski</span><span class="sets-score">1</span></div>
+                        <div class="legs-detail"><span>Sätze: 3-2, 2-3, 3-1&nbsp;&nbsp;|&nbsp;&nbsp;Legs: 8-6</span></div>
+                    </div>
+                    <div class="match-card">
+                        <div class="match-header"><span>1. Runde</span><span>Beendet</span></div>
+                        <div class="player-row winner"><span class="player-name" onclick="openPlayerModal('Gerwyn Price')">Gerwyn Price</span><span class="sets-score winner-score">2</span></div>
+                        <div class="player-row"><span class="player-name" onclick="openPlayerModal('Sebastian Bialecki')">Sebastian Bialecki</span><span class="sets-score">0</span></div>
+                        <div class="legs-detail"><span>Sätze: 3-0, 3-1&nbsp;&nbsp;|&nbsp;&nbsp;Legs: 6-1</span></div>
+                    </div>
+                    <div class="match-card">
+                        <div class="match-header"><span>1. Runde</span><span>Beendet</span></div>
+                        <div class="player-row"><span class="player-name" onclick="openPlayerModal('Michael van Gerwen')">Michael van Gerwen</span><span class="sets-score">1</span></div>
+                        <div class="player-row winner"><span class="player-name" onclick="openPlayerModal('Ryan Joyce')">Ryan Joyce</span><span class="sets-score winner-score">2</span></div>
+                        <div class="legs-detail"><span>Sätze: 3-2, 1-3, 1-3&nbsp;&nbsp;|&nbsp;&nbsp;Legs: 5-8</span></div>
+                    </div>
+                    <div class="match-card">
+                        <div class="match-header"><span>1. Runde</span><span>Beendet</span></div>
+                        <div class="player-row"><span class="player-name" onclick="openPlayerModal('Luke Littler')">Luke Littler</span><span class="sets-score">1</span></div>
+                        <div class="player-row winner"><span class="player-name" onclick="openPlayerModal('Luke Woodhouse')">Luke Woodhouse</span><span class="sets-score winner-score">2</span></div>
+                        <div class="legs-detail"><span>Sätze: 3-1, 2-3, 1-3&nbsp;&nbsp;|&nbsp;&nbsp;Legs: 6-7</span></div>
+                    </div>
+                    <div class="match-card">
+                        <div class="match-header"><span>1. Runde</span><span>Beendet</span></div>
+                        <div class="player-row winner"><span class="player-name" onclick="openPlayerModal('Wessel Nijman')">Wessel Nijman</span><span class="sets-score winner-score">2</span></div>
+                        <div class="player-row"><span class="player-name" onclick="openPlayerModal('Rob Cross')">Rob Cross</span><span class="sets-score">0</span></div>
+                        <div class="legs-detail"><span>Sätze: 3-2, 3-1&nbsp;&nbsp;|&nbsp;&nbsp;Legs: 6-3</span></div>
+                    </div>
+                </div>
+            </div>
             <div>
-                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold;">Kollegen-Tippspiel</div>
-                <div style="font-size: 0.85rem; font-weight: bold;" id="activeTipperDisplay">Eingeloggt als: Langen</div>
-            </div>
-        </div>
-        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <select id="tipperSelect" class="form-control" style="width: 130px; font-weight: bold;" onchange="changeTipper(this.value)">
-                <option value="Langen">Langen (Gold)</option>
-                <option value="Kokser">Kokser (Grün)</option>
-            </select>
-            <button class="matchday-btn" onclick="openPasswordModal()" style="font-size: 0.75rem;">🔑 Passwort ändern</button>
-            <button class="matchday-btn" onclick="loadFromCloud(true)" style="background: #21262d; border-color: var(--border-color);" title="Daten sofort neu laden">🔄 Aktualisieren</button>
-            <button class="matchday-btn" onclick="openLeaderboardModal()" style="background: var(--bayern-red); border-color: var(--bayern-red);">🏆 Gesamtwertung</button>
-        </div>
-    </div>
-
-    <!-- BAYERN AUSWERTUNG & TORSCHÜTZEN -->
-    <div class="section-box">
-        <div class="section-header">FC Bayern München — Saison-Auswertung</div>
-        <div class="stats-grid" id="bayernStatsGrid"></div>
-        <div style="margin-top: 15px;">
-            <div style="font-size: 0.8rem; font-weight: bold; color: var(--bayern-bright-red); text-transform: uppercase; margin-bottom: 8px;">Interne Torschützenliste</div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Spieler</th>
-                            <th style="text-align: center; width: 100px;">Tore</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bayernScorersBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- SPIELTAGS-TABELLE -->
-    <div class="section-box">
-        <div class="section-header" id="matchdayTableHeader">Spieltag 1 — Spiele, Ergebnisse & Tipps</div>
-        <div class="matchday-controls">
-            <button class="matchday-btn" onclick="changeMatchday(-1)">◀ Vorheriger Spieltag</button>
-            <strong id="matchdayDisplay" style="color: var(--bayern-bright-red); font-size: 1.1rem;">Spieltag 1</strong>
-            <button class="matchday-btn" onclick="changeMatchday(1)">Nächster Spieltag ▶</button>
-        </div>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 120px; color: #ffffff;">Termin</th>
-                        <th style="text-align: right;">Heimmannschaft</th>
-                        <th style="text-align: center; width: 160px;">Ergebnis / Status</th>
-                        <th>Gastmannschaft</th>
-                        <th style="width: 110px; text-align: center;">Tipp</th>
-                        <th style="width: 40px; text-align: center;"></th>
-                    </tr>
-                </thead>
-                <tbody id="matchdayTableBody"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- GESAMT-TABELLE -->
-    <div class="section-box">
-        <div class="section-header">Bundesliga-Tabelle (Gesamt)</div>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 35px;">Pl.</th>
-                        <th>Mannschaft</th>
-                        <th style="text-align: center;">Sp</th>
-                        <th style="text-align: center;">S</th>
-                        <th style="text-align: center;">U</th>
-                        <th style="text-align: center;">N</th>
-                        <th style="text-align: center;">Tore</th>
-                        <th style="text-align: center;">Diff</th>
-                        <th style="text-align: center;">Punkte</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
-        <div style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.75rem; color: var(--text-muted);">
-            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; background: var(--accent-green); border-radius: 2px; display: inline-block;"></span> 1. Platz (Meister / Champions League)</div>
-            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; background: var(--accent-yellow); border-radius: 2px; display: inline-block;"></span> Abstiegsplätze (16. - 18.)</div>
-        </div>
-    </div>
-
-    <!-- ADMIN BEREICH -->
-    <div class="admin-card" id="adminCard">
-        <div style="font-weight: bold; color: var(--bayern-bright-red); margin-bottom: 12px; text-transform: uppercase; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
-            <span>✏️ Ergebnisse & Torschützen für <span id="adminMatchdayLabel">Spieltag 1</span> erfassen</span>
-            <span style="font-size: 0.7rem; color: #3fb950;">● Admin-Modus Aktiv</span>
-        </div>
-        <div id="matchInputsContainer"></div>
-        <button class="btn" onclick="saveAllMatches()">Alle Ergebnisse & Torschützen speichern</button>
-    </div>
-
-    <div class="admin-toggle-wrapper">
-        <button class="admin-toggle-btn" onclick="toggleAdminMode()">⚙️ Admin-Zugang</button>
-    </div>
-</div>
-
-<!-- MODAL: PASSWORT ABFRAGE (VOR TIPPEN) -->
-<div class="modal-overlay" id="authModal">
-    <div class="modal-card">
-        <div style="font-weight: bold; font-size: 1rem; color: #ffffff; margin-bottom: 5px;">🔐 Tipp-Schutz</div>
-        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 15px;">Bitte gib das Passwort für <strong id="authTipperName">Langen</strong> ein:</div>
-        
-        <div style="margin-bottom: 15px;">
-            <input type="password" id="authPasswordInput" class="form-control" placeholder="Dein Passwort..." style="text-align: center; font-size: 1rem;">
-        </div>
-
-        <div style="display: flex; gap: 10px;">
-            <button class="btn" style="background: #21262d; margin-top: 0;" onclick="closeAuthModal()">Abbrechen</button>
-            <button class="btn" style="margin-top: 0;" onclick="verifyAndOpenTipModal()">Bestätigen</button>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL: PASSWORT FESTLEGEN / ÄNDERN -->
-<div class="modal-overlay" id="passwordModal">
-    <div class="modal-card">
-        <div style="font-weight: bold; font-size: 1rem; color: #ffffff; margin-bottom: 5px;">🔑 Passwort einrichten</div>
-        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 15px;">Vergib ein eigenes Passwort für <strong id="pwTipperName">Langen</strong> (wird sicher online gespeichert):</div>
-        
-        <div style="margin-bottom: 15px;">
-            <label style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Neues Passwort</label>
-            <input type="password" id="newPasswordInput" class="form-control" placeholder="Passwort eingeben..." style="text-align: center; font-size: 1rem;">
-        </div>
-
-        <div style="display: flex; gap: 10px;">
-            <button class="btn" style="background: #21262d; margin-top: 0;" onclick="closePasswordModal()">Abbrechen</button>
-            <button class="btn" style="margin-top: 0;" onclick="saveNewPassword()">Passwort speichern</button>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL: TIPP ABGEBEN -->
-<div class="modal-overlay" id="tipModal">
-    <div class="modal-card">
-        <div style="font-weight: bold; font-size: 1rem; color: #ffffff; margin-bottom: 5px;" id="modalMatchTitle">Tipp abgeben</div>
-        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 15px;" id="modalMatchSub">Tippe als: <strong id="modalTipperName">Langen</strong></div>
-        
-        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px;">
-            <div style="text-align: center;">
-                <label style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-bottom: 4px;" id="modalHomeLabel">Heim</label>
-                <input type="number" id="modalHomeTip" class="form-control" style="width: 70px; text-align: center; font-size: 1.2rem; font-weight: bold;" min="0" value="0">
-            </div>
-            <span style="font-size: 1.2rem; font-weight: bold; margin-top: 15px;">:</span>
-            <div style="text-align: center;">
-                <label style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-bottom: 4px;" id="modalAwayLabel">Gast</label>
-                <input type="number" id="modalAwayTip" class="form-control" style="width: 70px; text-align: center; font-size: 1.2rem; font-weight: bold;" min="0" value="0">
+                <div style="font-size: 13px; font-weight: bold; color: #94a3b8; margin-bottom: 10px;">Dienstag, 29.09.2026</div>
+                <div class="matches-grid" id="r1_tue-grid"></div>
             </div>
         </div>
 
-        <div style="display: flex; gap: 10px;">
-            <button class="btn" style="background: #21262d; margin-top: 0;" onclick="closeTipModal()">Abbrechen</button>
-            <button class="btn" style="margin-top: 0;" onclick="saveUserTip()">Tipp speichern</button>
+        <!-- Achtelfinale -->
+        <div class="day-section" id="section-af">
+            <div class="day-title">Achtelfinale</div>
+            <div class="matches-grid" id="af-grid"></div>
+        </div>
+
+        <!-- Viertelfinale -->
+        <div class="day-section" id="section-vf">
+            <div class="day-title">Viertelfinale</div>
+            <div class="matches-grid" id="vf-grid"></div>
+        </div>
+
+        <!-- Halbfinale -->
+        <div class="day-section" id="section-hf">
+            <div class="day-title">Halbfinale</div>
+            <div class="matches-grid" id="hf-grid"></div>
+        </div>
+
+        <!-- Endspiel -->
+        <div class="day-section" id="section-fin">
+            <div class="day-title">Endspiel</div>
+            <div class="matches-grid" id="fin-grid"></div>
+        </div>
+
+        <!-- ADMIN BEREICH (GESCHÜTZT) -->
+        <div class="admin-section">
+            <h2>⚙️ Admin-Bereich: Turnier-Verwaltung</h2>
+            
+            <div id="admin-login" class="login-box">
+                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 10px;">Bitte Passwort eingeben, um den Admin-Bereich zu entsperren:</p>
+                <div style="display: flex; gap: 10px; max-width: 300px; margin: 0 auto;">
+                    <input type="password" id="admin-pw" placeholder="Passwort" style="flex: 1; padding: 8px 10px; background-color: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f8fafc;">
+                    <button class="admin-btn" style="width: auto; padding: 8px 15px;" onclick="checkPassword()">Login</button>
+                </div>
+                <p id="login-error" style="color: #ef4444; font-size: 12px; margin-top: 8px; display: none;">Falsches Passwort!</p>
+            </div>
+
+            <div id="admin-content" style="display: none;">
+                <div class="admin-form-grid">
+                    <div class="admin-group">
+                        <label for="admin-round">Turnierrunde:</label>
+                        <select id="admin-round" onchange="updateMatchSelect()">
+                            <option value="r1_tue">1. Runde Dienstag (8 Spiele)</option>
+                            <option value="af">Achtelfinale (8 Spiele)</option>
+                            <option value="vf">Viertelfinale (4 Spiele)</option>
+                            <option value="hf">Halbfinale (2 Spiele)</option>
+                            <option value="fin">Endspiel (1 Spiel)</option>
+                        </select>
+                    </div>
+                    <div class="admin-group">
+                        <label for="admin-match-select">Partie auswählen:</label>
+                        <select id="admin-match-select" onchange="loadMatchData()"></select>
+                    </div>
+                </div>
+                <div class="admin-form-grid">
+                    <div class="admin-group">
+                        <label for="admin-date">Datum & Uhrzeit / Info</label>
+                        <input type="text" id="admin-date" placeholder="z.B. Di, 29.09. • 19:15">
+                    </div>
+                    <div class="admin-group">
+                        <label for="admin-status">Status</label>
+                        <select id="admin-status">
+                            <option value="Ausstehend">Ausstehend</option>
+                            <option value="Live">🔴 Live</option>
+                            <option value="Beendet">Beendet</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="admin-form-grid">
+                    <div class="admin-group">
+                        <label for="admin-p1-select">Spieler 1 auswählen:</label>
+                        <select id="admin-p1-select" onchange="document.getElementById('admin-p1').value = this.value;">
+                            <option value="">-- Spieler wählen --</option>
+                        </select>
+                    </div>
+                    <div class="admin-group">
+                        <label for="admin-p1">Spieler 1 Name (or manuell):</label>
+                        <input type="text" id="admin-p1" placeholder="Name Spieler 1">
+                    </div>
+                </div>
+                <div class="admin-form-grid">
+                    <div class="admin-group">
+                        <label for="admin-p2-select">Spieler 2 auswählen:</label>
+                        <select id="admin-p2-select" onchange="document.getElementById('admin-p2').value = this.value;">
+                            <option value="">-- Spieler wählen --</option>
+                        </select>
+                    </div>
+                    <div class="admin-group">
+                        <label for="admin-p2">Spieler 2 Name (oder manuell):</label>
+                        <input type="text" id="admin-p2" placeholder="Name Spieler 2">
+                    </div>
+                </div>
+                <div class="admin-form-grid">
+                    <div class="admin-group" style="grid-column: span 2;">
+                        <label for="admin-setdetails">Satz-Details (z.B. 3-1, 1-3, 3-2)</label>
+                        <input type="text" id="admin-setdetails" placeholder="3-1, 1-3, 3-2">
+                    </div>
+                </div>
+                <button class="admin-btn" onclick="saveMatch()">💾 In Supabase Speichern</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SPIELER STECKBRIEF MODAL -->
+    <div class="modal-overlay" id="playerModal" onclick="closePlayerModal(event)">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeModalDirect()">×</button>
+            <img id="modalProfileImg" src="" alt="Spieler Steckbrief">
         </div>
     </div>
-</div>
 
-<!-- MODAL: GESAMTWERTUNG -->
-<div class="modal-overlay" id="leaderboardModal">
-    <div class="modal-card" style="max-width: 450px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-            <div style="font-weight: bold; font-size: 1.1rem; color: #ffffff;">🏆 Tipp-Gesamtwertung</div>
-            <button class="btn-danger" onclick="closeLeaderboardModal()">✕</button>
-        </div>
-        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px;">Punktesystem: Exaktes Ergebnis = 3 Pkt. | Richtige Tordifferenz = 2 Pkt. | Richtige Tendenz = 1 Pkt.</div>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 40px;">Pl.</th>
-                        <th>Mitspieler</th>
-                        <th style="text-align: center;">Richtig</th>
-                        <th style="text-align: center;">Punkte</th>
-                    </tr>
-                </thead>
-                <tbody id="leaderboardTableBody"></tbody>
-            </table>
-        </div>
-        <button class="btn" style="margin-top: 15px;" onclick="closeLeaderboardModal()">Schließen</button>
-    </div>
-</div>
+    <script>
+        const SUPABASE_URL = 'https://lhusylpjnujlqomougmg.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_yXEueWILvAq-Vm2VfTuYyg_BIQeE1KK';
 
-<script>
-    const SUPABASE_URL = 'https://lhusylpjnujlqomougmg.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_yXEueWILvAq-Vm2VfTuYyg_BIQeE1KK';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const TABLE_NAME = 'wgp_matches_2026';
 
-    const ADMIN_PIN = "1919";
-    let isAdmin = false;
-
-    let currentTipper = localStorage.getItem('bundesliga_tipper') || 'Langen';
-    document.getElementById('tipperSelect').value = currentTipper;
-    document.getElementById('activeTipperDisplay').textContent = `Eingeloggt als: ${currentTipper}`;
-
-    const playerConfigs = {
-        'Langen': { color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.2)', border: '#f59e0b' },
-        'Kokser': { color: '#10b981', bg: 'rgba(16, 185, 129, 0.2)', border: '#10b981' }
-    };
-
-    let playerPasswords = {};
-    let allTips = [];
-    let playerPhotos = {};
-    let teamLogos = {};
-    let pendingMatchId = null;
-    let pendingHome = '';
-    let pendingAway = '';
-
-    function changeTipper(name) {
-        currentTipper = name;
-        localStorage.setItem('bundesliga_tipper', name);
-        document.getElementById('activeTipperDisplay').textContent = `Eingeloggt als: ${currentTipper}`;
-        renderMatchdayTable();
-    }
-
-    let leagueData = {
-        currentMatchday: 1,
-        teams: [
-            "FC Bayern München", "Borussia Dortmund", "Bayer 04 Leverkusen", "RB Leipzig", 
-            "Eintracht Frankfurt", "VfB Stuttgart", "Borussia Mönchengladbach", "Werder Bremen", 
-            "Sport-Club Freiburg", "TSG Hoffenheim", "1. FC Union Berlin", "FC Augsburg", 
-            "1. FSV Mainz 05", "1. FC Köln", "Hamburger SV", "FC Schalke 04", "SV Elversberg", "SC Paderborn 07"
-        ],
-        matches: {
-            "1": [
-                { "home": "FC Bayern München", "away": "VfB Stuttgart", "date": "2026-08-28", "time": "20:30" },
-                { "home": "1. FC Köln", "away": "TSG Hoffenheim", "date": "2026-08-29", "time": "15:30" },
-                { "home": "1. FC Union Berlin", "away": "Eintracht Frankfurt", "date": "2026-08-29", "time": "15:30" },
-                { "home": "1. FSV Mainz 05", "away": "SC Paderborn 07", "date": "2026-08-29", "time": "15:30" },
-                { "home": "RB Leipzig", "away": "Borussia Mönchengladbach", "date": "2026-08-29", "time": "15:30" },
-                { "home": "SV Elversberg", "away": "Bayer 04 Leverkusen", "date": "2026-08-29", "time": "15:30" },
-                { "home": "Borussia Dortmund", "away": "Hamburger SV", "date": "2026-08-29", "time": "18:30" },
-                { "home": "Sport-Club Freiburg", "away": "SV Werder Bremen", "date": "2026-08-30", "time": "15:30" },
-                { "home": "FC Augsburg", "away": "FC Schalke 04", "date": "2026-08-30", "time": "17:30" }
-            ],
-            "2": [
-                { "home": "VfB Stuttgart", "away": "1. FC Köln", "date": "2026-09-04", "time": "20:30" },
-                { "home": "Bayer 04 Leverkusen", "away": "1. FC Union Berlin", "date": "2026-09-05", "time": "15:30" },
-                { "home": "Borussia Mönchengladbach", "away": "SV Elversberg", "date": "2026-09-05", "time": "15:30" },
-                { "home": "SC Paderborn 07", "away": "Sport-Club Freiburg", "date": "2026-09-05", "time": "15:30" },
-                { "home": "SV Werder Bremen", "away": "RB Leipzig", "date": "2026-09-05", "time": "15:30" },
-                { "home": "TSG Hoffenheim", "away": "Borussia Dortmund", "date": "2026-09-05", "time": "15:30" },
-                { "home": "FC Schalke 04", "away": "FC Bayern München", "date": "2026-09-05", "time": "18:30" },
-                { "home": "Hamburger SV", "away": "1. FSV Mainz 05", "date": "2026-09-06", "time": "15:30" },
-                { "home": "Eintracht Frankfurt", "away": "FC Augsburg", "date": "2026-09-06", "time": "17:30" }
-            ],
-            "3": [
-                { "home": "1. FC Union Berlin", "away": "FC Schalke 04", "date": "2026-09-11", "time": "20:30" },
-                { "home": "1. FSV Mainz 05", "away": "Eintracht Frankfurt", "date": "2026-09-12", "time": "15:30" },
-                { "home": "Borussia Dortmund", "away": "SC Paderborn 07", "date": "2026-09-12", "time": "15:30" },
-                { "home": "FC Augsburg", "away": "Bayer 04 Leverkusen", "date": "2026-09-12", "time": "15:30" },
-                { "home": "Sport-Club Freiburg", "away": "Borussia Mönchengladbach", "date": "2026-09-12", "time": "15:30" },
-                { "home": "TSG Hoffenheim", "away": "VfB Stuttgart", "date": "2026-09-12", "time": "15:30" },
-                { "home": "1. FC Köln", "away": "SV Werder Bremen", "date": "2026-09-12", "time": "18:30" },
-                { "home": "RB Leipzig", "away": "Hamburger SV", "date": "2026-09-13", "time": "15:30" },
-                { "home": "SV Elversberg", "away": "FC Bayern München", "date": "2026-09-13", "time": "17:30" }
-            ],
-            "4": [
-                { "home": "FC Bayern München", "away": "1. FC Union Berlin", "date": "2026-09-18", "time": "20:30" },
-                { "home": "Borussia Mönchengladbach", "away": "1. FSV Mainz 05", "date": "2026-09-19", "time": "15:30" },
-                { "home": "Eintracht Frankfurt", "away": "Sport-Club Freiburg", "date": "2026-09-19", "time": "15:30" },
-                { "home": "Hamburger SV", "away": "1. FC Köln", "date": "2026-09-19", "time": "15:30" },
-                { "home": "SV Werder Bremen", "away": "FC Augsburg", "date": "2026-09-19", "time": "15:30" },
-                { "home": "VfB Stuttgart", "away": "Borussia Dortmund", "date": "2026-09-19", "time": "18:30" },
-                { "home": "Bayer 04 Leverkusen", "away": "RB Leipzig", "date": "2026-09-20", "time": "15:30" },
-                { "home": "FC Schalke 04", "away": "SV Elversberg", "date": "2026-09-20", "time": "17:30" },
-                { "home": "SC Paderborn 07", "away": "TSG Hoffenheim", "date": "2026-09-20", "time": "19:30" }
-            ],
-            "5": [
-                { "home": "Borussia Dortmund", "away": "SV Werder Bremen", "date": "2026-10-09", "time": "20:30" },
-                { "home": "1. FC Union Berlin", "away": "SV Elversberg", "date": "2026-10-10", "time": "15:30" },
-                { "home": "1. FSV Mainz 05", "away": "Bayer 04 Leverkusen", "date": "2026-10-10", "time": "15:30" },
-                { "home": "FC Augsburg", "away": "FC Bayern München", "date": "2026-10-10", "time": "15:30" },
-                { "home": "SC Paderborn 07", "away": "VfB Stuttgart", "date": "2026-10-10", "time": "15:30" },
-                { "home": "TSG Hoffenheim", "away": "Hamburger SV", "date": "2026-10-10", "time": "15:30" },
-                { "home": "RB Leipzig", "away": "Eintracht Frankfurt", "date": "2026-10-10", "time": "18:30" },
-                { "home": "1. FC Köln", "away": "Borussia Mönchengladbach", "date": "2026-10-11", "time": "15:30" },
-                { "home": "Sport-Club Freiburg", "away": "FC Schalke 04", "date": "2026-10-11", "time": "17:30" }
-            ],
-            "6": [
-                { "home": "Eintracht Frankfurt", "away": "1. FC Köln", "date": "2026-10-16", "time": "20:30" },
-                { "home": "1. FC Union Berlin", "away": "Borussia Dortmund", "date": "2026-10-17", "time": "15:30" },
-                { "home": "FC Schalke 04", "away": "1. FSV Mainz 05", "date": "2026-10-17", "time": "15:30" },
-                { "home": "Hamburger SV", "away": "VfB Stuttgart", "date": "2026-10-17", "time": "15:30" },
-                { "home": "SV Elversberg", "away": "FC Augsburg", "date": "2026-10-17", "time": "15:30" },
-                { "home": "SV Werder Bremen", "away": "SC Paderborn 07", "date": "2026-10-17", "time": "15:30" },
-                { "home": "FC Bayern München", "away": "RB Leipzig", "date": "2026-10-17", "time": "18:30" },
-                { "home": "Bayer 04 Leverkusen", "away": "Sport-Club Freiburg", "date": "2026-10-18", "time": "15:30" },
-                { "home": "Borussia Mönchengladbach", "away": "TSG Hoffenheim", "date": "2026-10-18", "time": "17:30" }
-            ],
-            "7": [
-                { "home": "VfB Stuttgart", "away": "Borussia Mönchengladbach", "date": "2026-10-23", "time": "20:30" },
-                { "home": "1. FC Köln", "away": "FC Schalke 04", "date": "2026-10-24", "time": "15:30" },
-                { "home": "1. FSV Mainz 05", "away": "SV Werder Bremen", "date": "2026-10-24", "time": "15:30" },
-                { "home": "FC Augsburg", "away": "1. FC Union Berlin", "date": "2026-10-24", "time": "15:30" },
-                { "home": "RB Leipzig", "away": "SV Elversberg", "date": "2026-10-24", "time": "15:30" },
-                { "home": "SC Paderborn 07", "away": "Hamburger SV", "date": "2026-10-24", "time": "15:30" },
-                { "home": "Borussia Dortmund", "away": "Eintracht Frankfurt", "date": "2026-10-24", "time": "18:30" },
-                { "home": "TSG Hoffenheim", "away": "Bayer 04 Leverkusen", "date": "2026-10-25", "time": "15:30" },
-                { "home": "Sport-Club Freiburg", "away": "FC Bayern München", "date": "2026-10-25", "time": "17:30" }
-            ],
-            "8": [
-                { "home": "SV Elversberg", "away": "1. FSV Mainz 05", "date": "2026-10-30", "time": "20:30" },
-                { "home": "Bayer 04 Leverkusen", "away": "VfB Stuttgart", "date": "2026-10-31", "time": "15:30" },
-                { "home": "Borussia Mönchengladbach", "away": "SC Paderborn 07", "date": "2026-10-31", "time": "15:30" },
-                { "home": "FC Augsburg", "away": "Sport-Club Freiburg", "date": "2026-10-31", "time": "15:30" },
-                { "home": "FC Schalke 04", "away": "RB Leipzig", "date": "2026-10-31", "time": "15:30" },
-                { "home": "SV Werder Bremen", "away": "TSG Hoffenheim", "date": "2026-10-31", "time": "15:30" },
-                { "home": "FC Bayern München", "away": "Borussia Dortmund", "date": "2026-10-31", "time": "18:30" },
-                { "home": "1. FC Union Berlin", "away": "1. FC Köln", "date": "2026-11-01", "time": "15:30" },
-                { "home": "Eintracht Frankfurt", "away": "Hamburger SV", "date": "2026-11-01", "time": "17:30" }
-            ],
-            "9": [
-                { "home": "Hamburger SV", "away": "Borussia Mönchengladbach", "date": "2026-11-06", "time": "20:30" },
-                { "home": "1. FSV Mainz 05", "away": "FC Bayern München", "date": "2026-11-07", "time": "15:30" },
-                { "home": "Borussia Dortmund", "away": "SV Elversberg", "date": "2026-11-07", "time": "15:30" },
-                { "home": "RB Leipzig", "away": "FC Augsburg", "date": "2026-11-07", "time": "15:30" },
-                { "home": "SC Paderborn 07", "away": "Eintracht Frankfurt", "date": "2026-11-07", "time": "15:30" },
-                { "home": "VfB Stuttgart", "away": "SV Werder Bremen", "date": "2026-11-07", "time": "18:30" },
-                { "home": "1. FC Köln", "away": "Bayer 04 Leverkusen", "date": "2026-11-08", "time": "15:30" },
-                { "home": "Sport-Club Freiburg", "away": "1. FC Union Berlin", "date": "2026-11-08", "time": "17:30" },
-                { "home": "TSG Hoffenheim", "away": "FC Schalke 04", "date": "2026-11-08", "time": "19:30" }
-            ],
-            "10": [
-                { "home": "FC Bayern München", "away": "1. FC Köln", "date": "2026-11-20", "time": "20:30" },
-                { "home": "1. FC Union Berlin", "away": "RB Leipzig", "date": "2026-11-21", "time": "15:30" },
-                { "home": "Bayer 04 Leverkusen", "away": "SC Paderborn 07", "date": "2026-11-21", "time": "15:30" },
-                { "home": "Borussia Mönchengladbach", "away": "Borussia Dortmund", "date": "2026-11-21", "time": "15:30" },
-                { "home": "Eintracht Frankfurt", "away": "TSG Hoffenheim", "date": "2026-11-21", "time": "15:30" },
-                { "home": "SV Elversberg", "away": "Sport-Club Freiburg", "date": "2026-11-21", "time": "15:30" },
-                { "home": "FC Schalke 04", "away": "VfB Stuttgart", "date": "2026-11-21", "time": "18:30" },
-                { "home": "FC Augsburg", "away": "1. FSV Mainz 05", "date": "2026-11-22", "time": "15:30" },
-                { "home": "SV Werder Bremen", "away": "Hamburger SV", "date": "2026-11-22", "time": "17:30" }
-            ],
-            "11": [
-                { "home": "SV Werder Bremen", "away": "Borussia Mönchengladbach", "date": "2026-11-27", "time": "20:30" },
-                { "home": "1. FC Köln", "away": "SV Elversberg", "date": "2026-11-28", "time": "15:30" },
-                { "home": "1. FSV Mainz 05", "away": "1. FC Union Berlin", "date": "2026-11-28", "time": "15:30" },
-                { "home": "Hamburger SV", "away": "FC Bayern München", "date": "2026-11-28", "time": "15:30" },
-                { "home": "SC Paderborn 07", "away": "FC Schalke 04", "date": "2026-11-28", "time": "15:30" },
-                { "home": "VfB Stuttgart", "away": "Eintracht Frankfurt", "date": "2026-11-28", "time": "18:30" },
-                { "home": "Sport-Club Freiburg", "away": "RB Leipzig", "date": "2026-11-29", "time": "15:30" },
-                { "home": "TSG Hoffenheim", "away": "FC Augsburg", "date": "2026-11-29", "time": "17:30" },
-                { "home": "Borussia Dortmund", "away": "Bayer 04 Leverkusen", "date": "2026-11-29", "time": "19:30" }
-            ],
-            "12": [
-                { "home": "1. FC Union Berlin", "away": "Hamburger SV", "date": "2026-12-04", "time": "20:30" },
-                { "home": "Bayer 04 Leverkusen", "away": "Borussia Mönchengladbach", "date": "2026-12-05", "time": "15:30" },
-                { "home": "Eintracht Frankfurt", "away": "SV Werder Bremen", "date": "2026-12-05", "time": "15:30" },
-                { "home": "FC Augsburg", "away": "1. FC Köln", "date": "2026-12-05", "time": "15:30" },
-                { "home": "FC Bayern München", "away": "SC Paderborn 07", "date": "2026-12-05", "time": "15:30" },
-                { "home": "FC Schalke 04", "away": "Borussia Dortmund", "date": "2026-12-05", "time": "15:30" },
-                { "home": "RB Leipzig", "away": "1. FSV Mainz 05", "date": "2026-12-05", "time": "15:30" },
-                { "home": "Sport-Club Freiburg", "away": "TSG Hoffenheim", "date": "2026-12-05", "time": "15:30" },
-                { "home": "SV Elversberg", "away": "VfB Stuttgart", "date": "2026-12-05", "time": "15:30" }
-            ],
-            "13": [
-                { "home": "1. FC Köln", "away": "RB Leipzig", "date": "2026-12-11", "time": "20:30" },
-                { "home": "1. FSV Mainz 05", "away": "Sport-Club Freiburg", "date": "2026-12-12", "time": "15:30" },
-                { "home": "Borussia Dortmund", "away": "FC Augsburg", "date": "2026-12-12", "time": "15:30" },
-                { "home": "Borussia Mönchengladbach", "away": "Eintracht Frankfurt", "date": "2026-12-12", "time": "15:30" },
-                { "home": "Hamburger SV", "away": "FC Schalke 04", "date": "2026-12-12", "time": "15:30" },
-                { "home": "SC Paderborn 07", "away": "SV Elversberg", "date": "2026-12-12", "time": "15:30" },
-                { "home": "SV Werder Bremen", "away": "Bayer 04 Leverkusen", "date": "2026-12-12", "time": "15:30" },
-                { "home": "TSG Hoffenheim", "away": "FC Bayern München", "date": "2026-12-12", "time": "15:30" },
-                { "home": "VfB Stuttgart", "away": "1. FC Union Berlin", "date": "2026-12-12", "time": "15:30" }
-            ],
-            "14": [
-                { "home": "1. FC Union Berlin", "away": "TSG Hoffenheim", "date": "2026-12-18", "time": "20:30" },
-                { "home": "1. FSV Mainz 05", "away": "1. FC Köln", "date": "2026-12-19", "time": "15:30" },
-                { "home": "Bayer 04 Leverkusen", "away": "Eintracht Frankfurt", "date": "2026-12-19", "time": "15:30" },
-                { "home": "FC Augsburg", "away": "SC Paderborn 07", "date": "2026-12-19", "time": "15:30" },
-                { "home": "FC Bayern München", "away": "SV Werder Bremen", "date": "2026-12-19", "time": "15:30" },
-                { "home": "FC Schalke 04", "away": "Borussia Mönchengladbach", "date": "2026-12-19", "time": "15:30" },
-                { "home": "RB Leipzig", "away": "Borussia Dortmund", "date": "2026-12-19", "time": "15:30" },
-                { "home": "Sport-Club Freiburg", "away": "VfB Stuttgart", "date": "2026-12-19", "time": "15:30" },
-                { "home": "SV Elversberg", "away": "Hamburger SV", "date": "2026-12-19", "time": "15:30" }
-            ],
-            "15": [
-                { "home": "1. FC Köln", "away": "Sport-Club Freiburg", "date": "2027-01-08", "time": "20:30" },
-                { "home": "Borussia Dortmund", "away": "1. FSV Mainz 05", "date": "2027-01-09", "time": "15:30" },
-                { "home": "Borussia Mönchengladbach", "away": "FC Bayern München", "date": "2027-01-09", "time": "15:30" },
-                { "home": "Eintracht Frankfurt", "away": "FC Schalke 04", "date": "2027-01-09", "time": "15:30" },
-                { "home": "Hamburger SV", "away": "Bayer 04 Leverkusen", "date": "2027-01-09", "time": "15:30" },
-                { "home": "SC Paderborn 07", "away": "RB Leipzig", "date": "2027-01-09", "time": "15:30" },
-                { "home": "SV Werder Bremen", "away": "1. FC Union Berlin", "date": "2027-01-09", "time": "15:30" },
-                { "home": "TSG Hoffenheim", "away": "SV Elversberg", "date": "2027-01-09", "time": "15:30" },
-                { "home": "VfB Stuttgart", "away": "FC Augsburg", "date": "2027-01-09", "time": "15:30" }
-            ],
-            "16": [
-                { "home": "1. FC Köln", "away": "Borussia Dortmund", "date": "2027-01-12", "time": "20:30" },
-                { "home": "1. FC Union Berlin", "away": "SC Paderborn 07", "date": "2027-01-13", "time": "15:30" },
-                { "home": "1. FSV Mainz 05", "away": "TSG Hoffenheim", "date": "2027-01-13", "time": "15:30" },
-                { "home": "FC Augsburg", "away": "Borussia Mönchengladbach", "date": "2027-01-13", "time": "15:30" },
-                { "home": "FC Bayern München", "away": "Bayer 04 Leverkusen", "date": "2027-01-13", "time": "15:30" },
-                { "home": "FC Schalke 04", "away": "SV Werder Bremen", "date": "2027-01-13", "time": "15:30" },
-                { "home": "RB Leipzig", "away": "VfB Stuttgart", "date": "2027-01-13", "time": "15:30" },
-                { "home": "Sport-Club Freiburg", "away": "Hamburger SV", "date": "2027-01-13", "time": "15:30" },
-                { "home": "SV Elversberg", "away": "Eintracht Frankfurt", "date": "2027-01-13", "time": "15:30" }
-            ],
-            "17": [
-                { "home": "Bayer 04 Leverkusen", "away": "FC Schalke 04", "date": "2027-01-15", "time": "20:30" },
-                { "home": "Borussia Dortmund", "away": "Sport-Club Freiburg", "date": "2027-01-16", "time": "15:30" },
-                { "home": "Borussia Mönchengladbach", "away": "1. FC Union Berlin", "date": "2027-01-16", "time": "15:30" },
-                { "home": "Eintracht Frankfurt", "away": "FC Bayern München", "date": "2027-01-16", "time": "15:30" },
-                { "home": "Hamburger SV", "away": "FC Augsburg", "date": "2027-01-16", "time": "15:30" },
-                { "home": "SC Paderborn 07", "away": "1. FC Köln", "date": "2027-01-16", "time": "15:30" },
-                { "home": "SV Werder Bremen", "away": "SV Elversberg", "date": "2027-01-16", "time": "15:30" },
-                { "home": "TSG Hoffenheim", "away": "RB Leipzig", "date": "2027-01-16", "time": "15:30" },
-                { "home": "VfB Stuttgart", "away": "1. FSV Mainz 05", "date": "2027-01-16", "time": "15:30" }
-            ],
-            "18": [
-                { "home": "Bayer 04 Leverkusen", "away": "SV Elversberg", "date": "2027-01-22", "time": "20:30" },
-                { "home": "Borussia Mönchengladbach", "away": "RB Leipzig", "date": "2027-01-23", "time": "15:30" },
-                { "home": "Eintracht Frankfurt", "away": "1. FC Union Berlin", "date": "2027-01-23", "time": "15:30" },
-                { "home": "FC Schalke 04", "away": "FC Augsburg", "date": "2027-01-23", "time": "15:30" },
-                { "home": "Hamburger SV", "away": "Borussia Dortmund", "date": "2027-01-23", "time": "15:30" },
-                { "home": "SC Paderborn 07", "away": "1. FSV Mainz 05", "date": "2027-01-23", "time": "15:30" },
-                { "home": "SV Werder Bremen", "away": "Sport-Club Freiburg", "date": "2027-01-23", "time": "15:30" },
-                { "home": "TSG Hoffenheim", "away": "1. FC Köln", "date": "2027-01-23", "time": "15:30" },
-                { "home": "VfB Stuttgart", "away": "FC Bayern München", "date": "2027-01-23", "time": "15:30" }
-            ],
-            "19": [
-                { "home": "1. FC Köln", "away": "VfB Stuttgart", "date": "2027-01-29", "time": "20:30" },
-                { "home": "1. FC Union Berlin", "away": "Bayer 04 Leverkusen", "date": "2027-01-30", "time": "15:30" },
-                { "home": "1. FSV Mainz 05", "away": "Hamburger SV", "date": "2027-01-30", "time": "15:30" },
-                { "home": "Borussia Dortmund", "away": "TSG Hoffenheim", "date": "2027-01-30", "time": "15:30" },
-                { "home": "FC Augsburg", "away": "Eintracht Frankfurt", "date": "2027-01-30", "time": "15:30" },
-                { "home": "FC Bayern München", "away": "FC Schalke 04", "date": "2027-01-30", "time": "15:30" },
-                { "home": "RB Leipzig", "away": "SV Werder Bremen", "date": "2027-01-30", "time": "15:30" },
-                { "home": "Sport-Club Freiburg", "away": "SC Paderborn 07", "date": "2027-01-30", "time": "15:30" },
-                { "home": "SV Elversberg", "away": "Borussia Mönchengladbach", "date": "2027-01-30", "time": "15:30" }
-            ],
-            "20": [
-                { "home": "Bayer 04 Leverkusen", "away": "FC Augsburg", "date": "2027-02-05", "time": "20:30" },
-                { "home": "Borussia Mönchengladbach", "away": "Sport-Club Freiburg", "date": "2027-02-06", "time": "15:30" },
-                { "home": "Eintracht Frankfurt", "away": "1. FSV Mainz 05", "date": "2027-02-06", "time": "15:30" },
-                { "home": "FC Bayern München", "away": "SV Elversberg", "date": "2027-02-06", "time": "15:30" },
-                { "home": "FC Schalke 04", "away": "1. FC Union Berlin", "date": "2027-02-06", "time": "15:30" },
-                { "home": "Hamburger SV", "away": "RB Leipzig", "date": "2027-02-06", "time": "15:30" },
-                { "home": "SC Paderborn 07", "away": "Borussia Dortmund", "date": "2027-02-06", "time": "15:30" },
-                { "home": "SV Werder Bremen", "away": "1. FC Köln", "date": "2027-02-06", "time": "15:30" },
-                { "home": "VfB Stuttgart", "away": "TSG Hoffenheim", "date": "2027-02-06", "time": "15:30" }
-            ],
-            "21": [
-                { "home": "1. FC Köln", "away": "Hamburger SV", "date": "2027-02-12", "time": "20:30" },
-                { "home": "1. FC Union Berlin", "away": "FC Bayern München", "date": "2027-02-13", "time": "15:30" },
-                { "home": "1. FSV Mainz 05", "away": "Borussia Mönchengladbach", "date": "2027-02-13", "time": "15:30" },
-                { "home": "Borussia Dortmund", "away": "VfB Stuttgart", "date": "2027-02-13", "time": "15:30" },
-                { "home": "FC Augsburg", "away": "SV Werder Bremen", "date": "2027-02-13", "time": "15:30" },
-                { "home": "RB Leipzig", "away": "Bayer 04 Leverkusen", "date": "2027-02-13", "time": "15:30" },
-                { "home": "Sport-Club Freiburg", "away": "Eintracht Frankfurt", "date": "2027-02-13", "time": "15:30" },
-                { "home": "SV Elversberg", "away": "FC Schalke 04", "date": "2027-02-13", "time": "15:30" },
-                { "home": "TSG Hoffenheim", "away": "SC Paderborn 07", "date": "2027-02-13", "time": "15:30" }
-            ],
-            "22": [
-                { "home": "Bayer 04 Leverkusen", "away": "1. FSV Mainz 05", "date": "2027-02-19", "time": "20:30" },
-                { "home": "Borussia Mönchengladbach", "away": "1. FC Köln", "date": "2027-02-20", "time": "15:30" },
-                { "home": "Eintracht Frankfurt", "away": "RB Leipzig", "date": "2027-02-20", "time": "15:30" },
-                { "home": "FC Bayern München", "away": "FC Augsburg", "date": "2027-02-20", "time": "15:30" },
-                { "home": "FC Schalke 04", "away": "Sport-Club Freiburg", "date": "2027-02-20", "time": "15:30" },
-                { "home": "Hamburger SV", "away": "TSG Hoffenheim", "date": "2027-02-20", "time": "15:30" },
-                { "home": "SV Elversberg", "away": "1. FC Union Berlin", "date": "2027-02-20", "time": "15:30" },
-                { "home": "SV Werder Bremen", "away": "Borussia Dortmund", "date": "2027-02-20", "time": "15:30" },
-                { "home": "VfB Stuttgart", "away": "SC Paderborn 07", "date": "2027-02-20", "time": "15:30" }
-            ],
-            "23": [
-                { "home": "1. FC Köln", "away": "Eintracht Frankfurt", "date": "2027-02-26", "time": "20:30" },
-                { "home": "1. FSV Mainz 05", "away": "FC Schalke 04", "date": "2027-02-27", "time": "15:30" },
-                { "home": "Borussia Dortmund", "away": "1. FC Union Berlin", "date": "2027-02-27", "time": "15:30" },
-                { "home": "FC Augsburg", "away": "SV Elversberg", "date": "2027-02-27", "time": "15:30" },
-                { "home": "RB Leipzig", "away": "FC Bayern München", "date": "2027-02-27", "time": "15:30" },
-                { "home": "SC Paderborn 07", "away": "SV Werder Bremen", "date": "2027-02-27", "time": "15:30" },
-                { "home": "Sport-Club Freiburg", "away": "Bayer 04 Leverkusen", "date": "2027-02-27", "time": "15:30" },
-                { "home": "TSG Hoffenheim", "away": "Borussia Mönchengladbach", "date": "2027-02-27", "time": "15:30" },
-                { "home": "VfB Stuttgart", "away": "Hamburger SV", "date": "2027-02-27", "time": "15:30" }
-            ],
-            "24": [
-                { "home": "1. FC Union Berlin", "away": "FC Augsburg", "date": "2027-03-02", "time": "20:30" },
-                { "home": "Bayer 04 Leverkusen", "away": "TSG Hoffenheim", "date": "2027-03-02", "time": "20:30" },
-                { "home": "Borussia Mönchengladbach", "away": "VfB Stuttgart", "date": "2027-03-02", "time": "20:30" },
-                { "home": "Eintracht Frankfurt", "away": "Borussia Dortmund", "date": "2027-03-02", "time": "20:30" },
-                { "home": "FC Bayern München", "away": "Sport-Club Freiburg", "date": "2027-03-02", "time": "20:30" },
-                { "home": "FC Schalke 04", "away": "1. FC Köln", "date": "2027-03-02", "time": "20:30" },
-                { "home": "Hamburger SV", "away": "SC Paderborn 07", "date": "2027-03-02", "time": "20:30" },
-                { "home": "SV Elversberg", "away": "RB Leipzig", "date": "2027-03-02", "time": "20:30" },
-                { "home": "SV Werder Bremen", "away": "1. FSV Mainz 05", "date": "2027-03-02", "time": "20:30" }
-            ],
-            "25": [
-                { "home": "1. FC Köln", "away": "1. FC Union Berlin", "date": "2027-03-05", "time": "20:30" },
-                { "home": "1. FSV Mainz 05", "away": "SV Elversberg", "date": "2027-03-06", "time": "15:30" },
-                { "home": "Borussia Dortmund", "away": "FC Bayern München", "date": "2027-03-06", "time": "15:30" },
-                { "home": "Hamburger SV", "away": "Eintracht Frankfurt", "date": "2027-03-06", "time": "15:30" },
-                { "home": "RB Leipzig", "away": "FC Schalke 04", "date": "2027-03-06", "time": "15:30" },
-                { "home": "SC Paderborn 07", "away": "Borussia Mönchengladbach", "date": "2027-03-06", "time": "15:30" },
-                { "home": "Sport-Club Freiburg", "away": "FC Augsburg", "date": "2027-03-06", "time": "15:30" },
-                { "home": "TSG Hoffenheim", "away": "SV Werder Bremen", "date": "2027-03-06", "time": "15:30" },
-                { "home": "VfB Stuttgart", "away": "Bayer 04 Leverkusen", "date": "2027-03-06", "time": "15:30" }
-            ],
-            "26": [
-                { "home": "1. FC Union Berlin", "away": "Sport-Club Freiburg", "date": "2027-03-12", "time": "20:30" },
-                { "home": "Bayer 04 Leverkusen", "away": "1. FC Köln", "date": "2027-03-13", "time": "15:30" },
-                { "home": "Borussia Mönchengladbach", "away": "Hamburger SV", "date": "2027-03-13", "time": "15:30" },
-                { "home": "Eintracht Frankfurt", "away": "SC Paderborn 07", "date": "2027-03-13", "time": "15:30" },
-                { "home": "FC Augsburg", "away": "RB Leipzig", "date": "2027-03-13", "time": "15:30" },
-                { "home": "FC Bayern München", "away": "1. FSV Mainz 05", "date": "2027-03-13", "time": "15:30" },
-                { "home": "FC Schalke 04", "away": "TSG Hoffenheim", "date": "2027-03-13", "time": "15:30" },
-                { "home": "SV Elversberg", "away": "Borussia Dortmund", "date": "2027-03-13", "time": "15:30" },
-                { "home": "SV Werder Bremen", "away": "VfB Stuttgart", "date": "2027-03-13", "time": "15:30" }
-            ],
-            "27": [
-                { "home": "1. FC Köln", "away": "FC Bayern München", "date": "2027-03-19", "time": "20:30" },
-                { "home": "1. FSV Mainz 05", "away": "FC Augsburg", "date": "2027-03-20", "time": "15:30" },
-                { "home": "Borussia Dortmund", "away": "Borussia Mönchengladbach", "date": "2027-03-20", "time": "15:30" },
-                { "home": "Hamburger SV", "away": "SV Werder Bremen", "date": "2027-03-20", "time": "15:30" },
-                { "home": "RB Leipzig", "away": "1. FC Union Berlin", "date": "2027-03-20", "time": "15:30" },
-                { "home": "SC Paderborn 07", "away": "Bayer 04 Leverkusen", "date": "2027-03-20", "time": "15:30" },
-                { "home": "Sport-Club Freiburg", "away": "SV Elversberg", "date": "2027-03-20", "time": "15:30" },
-                { "home": "TSG Hoffenheim", "away": "Eintracht Frankfurt", "date": "2027-03-20", "time": "15:30" },
-                { "home": "VfB Stuttgart", "away": "FC Schalke 04", "date": "2027-03-20", "time": "15:30" }
-            ],
-            "28": [
-                { "home": "1. FC Union Berlin", "away": "1. FSV Mainz 05", "date": "2027-04-02", "time": "20:30" },
-                { "home": "Bayer 04 Leverkusen", "away": "Borussia Dortmund", "date": "2027-04-03", "time": "15:30" },
-                { "home": "Borussia Mönchengladbach", "away": "SV Werder Bremen", "date": "2027-04-03", "time": "15:30" },
-                { "home": "Eintracht Frankfurt", "away": "VfB Stuttgart", "date": "2027-04-03", "time": "15:30" },
-                { "home": "FC Augsburg", "away": "TSG Hoffenheim", "date": "2027-04-03", "time": "15:30" },
-                { "home": "FC Bayern München", "away": "Hamburger SV", "date": "2027-04-03", "time": "15:30" },
-                { "home": "FC Schalke 04", "away": "SC Paderborn 07", "date": "2027-04-03", "time": "15:30" },
-                { "home": "RB Leipzig", "away": "Sport-Club Freiburg", "date": "2027-04-03", "time": "15:30" },
-                { "home": "SV Elversberg", "away": "1. FC Köln", "date": "2027-04-03", "time": "15:30" }
-            ],
-            "29": [
-                { "home": "1. FC Köln", "away": "FC Augsburg", "date": "2027-04-09", "time": "20:30" },
-                { "home": "1. FSV Mainz 05", "away": "RB Leipzig", "date": "2027-04-10", "time": "15:30" },
-                { "home": "Borussia Dortmund", "away": "FC Schalke 04", "date": "2027-04-10", "time": "15:30" },
-                { "home": "Borussia Mönchengladbach", "away": "Bayer 04 Leverkusen", "date": "2027-04-10", "time": "15:30" },
-                { "home": "Hamburger SV", "away": "1. FC Union Berlin", "date": "2027-04-10", "time": "15:30" },
-                { "home": "SC Paderborn 07", "away": "FC Bayern München", "date": "2027-04-10", "time": "15:30" },
-                { "home": "SV Werder Bremen", "away": "Eintracht Frankfurt", "date": "2027-04-10", "time": "15:30" },
-                { "home": "TSG Hoffenheim", "away": "Sport-Club Freiburg", "date": "2027-04-10", "time": "15:30" },
-                { "home": "VfB Stuttgart", "away": "SV Elversberg", "date": "2027-04-10", "time": "15:30" }
-            ],
-            "30": [
-                { "home": "1. FC Union Berlin", "away": "VfB Stuttgart", "date": "2027-04-16", "time": "20:30" },
-                { "home": "Bayer 04 Leverkusen", "away": "SV Werder Bremen", "date": "2027-04-17", "time": "15:30" },
-                { "home": "Eintracht Frankfurt", "away": "Borussia Mönchengladbach", "date": "2027-04-17", "time": "15:30" },
-                { "home": "FC Augsburg", "away": "Borussia Dortmund", "date": "2027-04-17", "time": "15:30" },
-                { "home": "FC Bayern München", "away": "TSG Hoffenheim", "date": "2027-04-17", "time": "15:30" },
-                { "home": "FC Schalke 04", "away": "Hamburger SV", "date": "2027-04-17", "time": "15:30" },
-                { "home": "RB Leipzig", "away": "1. FC Köln", "date": "2027-04-17", "time": "15:30" },
-                { "home": "Sport-Club Freiburg", "away": "1. FSV Mainz 05", "date": "2027-04-17", "time": "15:30" },
-                { "home": "SV Elversberg", "away": "SC Paderborn 07", "date": "2027-04-17", "time": "15:30" }
-            ],
-            "31": [
-                { "home": "1. FC Köln", "away": "1. FSV Mainz 05", "date": "2027-04-23", "time": "20:30" },
-                { "home": "Borussia Dortmund", "away": "RB Leipzig", "date": "2027-04-24", "time": "15:30" },
-                { "home": "Borussia Mönchengladbach", "away": "FC Schalke 04", "date": "2027-04-24", "time": "15:30" },
-                { "home": "Eintracht Frankfurt", "away": "Bayer 04 Leverkusen", "date": "2027-04-24", "time": "15:30" },
-                { "home": "Hamburger SV", "away": "SV Elversberg", "date": "2027-04-24", "time": "15:30" },
-                { "home": "SC Paderborn 07", "away": "FC Augsburg", "date": "2027-04-24", "time": "15:30" },
-                { "home": "SV Werder Bremen", "away": "FC Bayern München", "date": "2027-04-24", "time": "15:30" },
-                { "home": "TSG Hoffenheim", "away": "1. FC Union Berlin", "date": "2027-04-24", "time": "15:30" },
-                { "home": "VfB Stuttgart", "away": "Sport-Club Freiburg", "date": "2027-04-24", "time": "15:30" }
-            ],
-            "32": [
-                { "home": "1. FC Union Berlin", "away": "SV Werder Bremen", "date": "2027-05-07", "time": "20:30" },
-                { "home": "1. FSV Mainz 05", "away": "Borussia Dortmund", "date": "2027-05-08", "time": "15:30" },
-                { "home": "Bayer 04 Leverkusen", "away": "Hamburger SV", "date": "2027-05-08", "time": "15:30" },
-                { "home": "FC Augsburg", "away": "VfB Stuttgart", "date": "2027-05-08", "time": "15:30" },
-                { "home": "FC Bayern München", "away": "Borussia Mönchengladbach", "date": "2027-05-08", "time": "15:30" },
-                { "home": "FC Schalke 04", "away": "Eintracht Frankfurt", "date": "2027-05-08", "time": "15:30" },
-                { "home": "RB Leipzig", "away": "SC Paderborn 07", "date": "2027-05-08", "time": "15:30" },
-                { "home": "Sport-Club Freiburg", "away": "1. FC Köln", "date": "2027-05-08", "time": "15:30" },
-                { "home": "SV Elversberg", "away": "TSG Hoffenheim", "date": "2027-05-08", "time": "15:30" }
-            ],
-            "33": [
-                { "home": "Bayer 04 Leverkusen", "away": "FC Bayern München", "date": "2027-05-14", "time": "20:30" },
-                { "home": "Borussia Dortmund", "away": "1. FC Köln", "date": "2027-05-15", "time": "15:30" },
-                { "home": "Borussia Mönchengladbach", "away": "FC Augsburg", "date": "2027-05-15", "time": "15:30" },
-                { "home": "Eintracht Frankfurt", "away": "SV Elversberg", "date": "2027-05-15", "time": "15:30" },
-                { "home": "Hamburger SV", "away": "Sport-Club Freiburg", "date": "2027-05-15", "time": "15:30" },
-                { "home": "SC Paderborn 07", "away": "1. FC Union Berlin", "date": "2027-05-15", "time": "15:30" },
-                { "home": "SV Werder Bremen", "away": "FC Schalke 04", "date": "2027-05-15", "time": "15:30" },
-                { "home": "TSG Hoffenheim", "away": "1. FSV Mainz 05", "date": "2027-05-15", "time": "15:30" },
-                { "home": "VfB Stuttgart", "away": "RB Leipzig", "date": "2027-05-15", "time": "15:30" }
-            ],
-            "34": [
-                { "home": "1. FC Köln", "away": "SC Paderborn 07", "date": "2027-05-22", "time": "15:30" },
-                { "home": "1. FC Union Berlin", "away": "Borussia Mönchengladbach", "date": "2027-05-22", "time": "15:30" },
-                { "home": "1. FSV Mainz 05", "away": "VfB Stuttgart", "date": "2027-05-22", "time": "15:30" },
-                { "home": "FC Augsburg", "away": "Hamburger SV", "date": "2027-05-22", "time": "15:30" },
-                { "home": "FC Bayern München", "away": "Eintracht Frankfurt", "date": "2027-05-22", "time": "15:30" },
-                { "home": "FC Schalke 04", "away": "Bayer 04 Leverkusen", "date": "2027-05-22", "time": "15:30" },
-                { "home": "RB Leipzig", "away": "TSG Hoffenheim", "date": "2027-05-22", "time": "15:30" },
-                { "home": "Sport-Club Freiburg", "away": "Borussia Dortmund", "date": "2027-05-22", "time": "15:30" },
-                { "home": "SV Elversberg", "away": "SV Werder Bremen", "date": "2027-05-22", "time": "15:30" }
-            ]
-        }
-    };
-
-    function initMatchday() {
-        let savedDay = localStorage.getItem('bundesliga_current_matchday');
-        if (savedDay) leagueData.currentMatchday = parseInt(savedDay);
-    }
-    initMatchday();
-
-    function toggleAdminMode() {
-        const adminCard = document.getElementById('adminCard');
-        if (isAdmin) {
-            isAdmin = false;
-            adminCard.style.display = 'none';
-            renderMatchdayTable();
-            return;
-        }
-        let enteredPin = prompt("Bitte Admin-PIN eingeben:");
-        if (enteredPin === ADMIN_PIN) {
-            isAdmin = true;
-            adminCard.style.display = 'block';
-            renderAll();
-        } else if (enteredPin !== null) {
-            alert("Falsche PIN!");
-        }
-    }
-
-    async function loadFromCloud(showAlert = false) {
-        try {
-            let [matchesRes, tipsRes, pwRes, photosRes, logosRes] = await Promise.all([
-                supabaseClient.from('bundesliga_spiele').select('*'),
-                supabaseClient.from('bundesliga_tipps').select('*'),
-                supabaseClient.from('bundesliga_passwoerter').select('*'),
-                supabaseClient.from('bundesliga_spieler_fotos').select('*'),
-                supabaseClient.from('bundesliga_vereins_logos').select('*')
-            ]);
-
-            if (matchesRes.data && Array.isArray(matchesRes.data)) {
-                matchesRes.data.forEach(row => {
-                    let dbHome = row.home_team ? row.home_team.toLowerCase().trim() : "";
-                    let dbAway = row.away_team ? row.away_team.toLowerCase().trim() : "";
-
-                    for (let mDay in leagueData.matches) {
-                        let matchObj = leagueData.matches[mDay].find(m => 
-                            m.home.toLowerCase().trim() === dbHome && 
-                            m.away.toLowerCase().trim() === dbAway
-                        );
-                        if (matchObj) {
-                            matchObj.match_id = row.match_id;
-                            matchObj.homeScore = row.home_score;
-                            matchObj.awayScore = row.away_score;
-                            matchObj.bayernScorers = row.bayern_scorers;
-                            matchObj.scorers = row.bayern_scorers;
-                            break;
-                        }
-                    }
-                });
-            }
-
-            if (tipsRes.data) allTips = tipsRes.data;
-
-            if (pwRes.data) {
-                playerPasswords = {};
-                pwRes.data.forEach(p => {
-                    playerPasswords[p.player_name] = p.password;
-                });
-            }
-
-            if (photosRes.data) {
-                playerPhotos = {};
-                photosRes.data.forEach(item => {
-                    if (item.player_name && item.photo_url) {
-                        playerPhotos[item.player_name.trim().toLowerCase()] = item.photo_url;
-                    }
-                });
-            }
-
-            if (logosRes.data) {
-                teamLogos = {};
-                logosRes.data.forEach(item => {
-                    if (item.team_name && item.logo_url) {
-                        teamLogos[item.team_name.trim().toLowerCase()] = item.logo_url;
-                    }
-                });
-            }
-
-            if (showAlert) {
-                alert("Daten erfolgreich aktualisiert!");
-            }
-        } catch (e) {
-            console.log('Ladehinweis:', e);
-            if (showAlert) alert("Fehler beim Aktualisieren der Daten.");
-        }
-        renderAll();
-    }
-
-    async function saveToCloud() {
-        try {
-            let rowsToUpsert = [];
-            for (let mDay in leagueData.matches) {
-                leagueData.matches[mDay].forEach(m => {
-                    let matchIdStr = m.match_id || ("s" + mDay + "_" + m.home.trim().toLowerCase().replace(/[^a-z0-9]/g, "_") + "_vs_" + m.away.trim().toLowerCase().replace(/[^a-z0-9]/g, "_"));
-                    m.match_id = matchIdStr;
-
-                    if (m.homeScore !== undefined && m.homeScore !== null && m.awayScore !== undefined && m.awayScore !== null) {
-                        rowsToUpsert.push({
-                            match_id: matchIdStr,
-                            matchday: parseInt(mDay),
-                            home_team: m.home,
-                            away_team: m.away,
-                            home_score: parseInt(m.homeScore),
-                            away_score: parseInt(m.awayScore),
-                            bayern_scorers: m.bayernScorers || m.scorers || ""
-                        });
-                    }
-                });
-            }
-            if (rowsToUpsert.length > 0) {
-                await supabaseClient.from('bundesliga_spiele').upsert(rowsToUpsert, { onConflict: 'match_id' });
-            }
-        } catch (e) { console.error(e); }
-    }
-
-    function changeMatchday(amount) {
-        leagueData.currentMatchday = Math.max(1, Math.min(34, leagueData.currentMatchday + amount));
-        localStorage.setItem('bundesliga_current_matchday', leagueData.currentMatchday);
-        renderAll();
-    }
-
-    function renderAll() {
-        document.getElementById('matchdayDisplay').textContent = `Spieltag ${leagueData.currentMatchday}`;
-        document.getElementById('adminMatchdayLabel').textContent = `Spieltag ${leagueData.currentMatchday}`;
-        document.getElementById('matchdayTableHeader').textContent = `Spieltag ${leagueData.currentMatchday} — Spiele, Ergebnisse & Tipps`;
-        
-        renderMatchdayTable();
-        renderTable();
-        renderBayernStats();
-        if (isAdmin) renderInputForm();
-    }
-
-    function getTeamHtml(teamName, alignRight = false) {
-        let logoUrl = teamLogos[teamName.trim().toLowerCase()];
-        let logoHtml = logoUrl ? `<img src="${logoUrl}" alt="${teamName}" class="team-mini-logo">` : ``;
-
-        if (alignRight) {
-            return `<div class="team-cell-content" style="justify-content: flex-end;"><span>${teamName}</span>${logoHtml}</div>`;
-        } else {
-            return `<div class="team-cell-content">${logoHtml}<span>${teamName}</span></div>`;
-        }
-    }
-
-    function openPasswordModal() {
-        document.getElementById('pwTipperName').textContent = currentTipper;
-        document.getElementById('newPasswordInput').value = '';
-        document.getElementById('passwordModal').style.display = 'flex';
-    }
-
-    function closePasswordModal() {
-        document.getElementById('passwordModal').style.display = 'none';
-    }
-
-    async function saveNewPassword() {
-        let newPw = document.getElementById('newPasswordInput').value.trim();
-        if (!newPw) {
-            alert("Bitte ein gültiges Passwort eingeben!");
-            return;
-        }
-
-        let { error } = await supabaseClient.from('bundesliga_passwoerter').upsert({
-            player_name: currentTipper,
-            password: newPw
-        }, { onConflict: 'player_name' });
-
-        if (error) {
-            alert("Fehler beim Speichern des Passworts: " + error.message);
-        } else {
-            playerPasswords[currentTipper] = newPw;
-            sessionStorage.setItem('auth_' + currentTipper, 'true');
-            alert(`Passwort für ${currentTipper} erfolgreich gespeichert & freigeschaltet!`);
-            closePasswordModal();
-        }
-    }
-
-    function requestTipAuthentication(matchId, homeTeam, awayTeam) {
-        pendingMatchId = matchId;
-        pendingHome = homeTeam;
-        pendingAway = awayTeam;
-
-        let registeredPw = playerPasswords[currentTipper];
-
-        if (!registeredPw) {
-            let setupNow = confirm(`Für "${currentTipper}" ist noch kein Passwort hinterlegt. Möchtest du jetzt eines einrichten?`);
-            if (setupNow) {
-                openPasswordModal();
-                return;
-            } else {
-                openTipModalDirect(matchId, homeTeam, awayTeam);
-                return;
-            }
-        }
-
-        if (sessionStorage.getItem('auth_' + currentTipper) === 'true') {
-            openTipModalDirect(matchId, homeTeam, awayTeam);
-            return;
-        }
-
-        document.getElementById('authTipperName').textContent = currentTipper;
-        document.getElementById('authPasswordInput').value = '';
-        document.getElementById('authModal').style.display = 'flex';
-    }
-
-    function closeAuthModal() {
-        document.getElementById('authModal').style.display = 'none';
-        pendingMatchId = null;
-    }
-
-    function verifyAndOpenTipModal() {
-        let enteredPw = document.getElementById('authPasswordInput').value;
-        let registeredPw = playerPasswords[currentTipper];
-
-        if (enteredPw === registeredPw) {
-            sessionStorage.setItem('auth_' + currentTipper, 'true');
-            closeAuthModal();
-            openTipModalDirect(pendingMatchId, pendingHome, pendingAway);
-        } else {
-            alert("Falsches Passwort!");
-        }
-    }
-
-    function openTipModalDirect(matchId, homeTeam, awayTeam) {
-        activeModalMatchId = matchId;
-        document.getElementById('modalMatchTitle').textContent = `${homeTeam} vs ${awayTeam}`;
-        document.getElementById('modalHomeLabel').textContent = homeTeam;
-        document.getElementById('modalAwayLabel').textContent = awayTeam;
-        document.getElementById('modalTipperName').textContent = currentTipper;
-
-        let existing = allTips.find(t => t.match_id === matchId && t.player_name === currentTipper);
-        document.getElementById('modalHomeTip').value = existing ? existing.home_tip : 0;
-        document.getElementById('modalAwayTip').value = existing ? existing.away_tip : 0;
-
-        document.getElementById('tipModal').style.display = 'flex';
-    }
-
-    let activeModalMatchId = null;
-
-    function closeTipModal() {
-        document.getElementById('tipModal').style.display = 'none';
-        activeModalMatchId = null;
-    }
-
-    async function saveUserTip() {
-        if (!activeModalMatchId) return;
-        let hTip = parseInt(document.getElementById('modalHomeTip').value);
-        let aTip = parseInt(document.getElementById('modalAwayTip').value);
-
-        if (isNaN(hTip) || isNaN(aTip)) {
-            alert("Bitte gültige Zahlen eingeben!");
-            return;
-        }
-
-        let payload = {
-            match_id: activeModalMatchId,
-            player_name: currentTipper,
-            home_tip: hTip,
-            away_tip: aTip
+        // SUPABASE BILD-LINKS FÜR SPIELER
+        const playerProfileImages = {
+            "Nathan Aspinall": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/dart%20bilder/aspinall.png"
+            // Hier kannst du später weitere Spieler einfügen, z.B.:
+            // "Andrew Gilding": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/dart%20bilder/Andrew%20Gilding.png"
         };
 
-        let { error } = await supabaseClient.from('bundesliga_tipps').upsert(payload, { onConflict: 'match_id,player_name' });
-        if (error) {
-            alert('Fehler beim Speichern des Tipps: ' + error.message);
-        } else {
-            closeTipModal();
-            let { data } = await supabaseClient.from('bundesliga_tipps').select('*');
-            if (data) allTips = data;
-            renderMatchdayTable();
+        function openPlayerModal(playerName) {
+            let imgUrl = playerProfileImages[playerName];
+            if (imgUrl) {
+                document.getElementById('modalProfileImg').src = imgUrl;
+                document.getElementById('playerModal').style.display = 'flex';
+            } else {
+                alert("Für " + playerName + " ist noch kein Steckbrief-Bild hinterlegt.");
+            }
         }
-    }
 
-    function calculatePoints(tipH, tipA, resH, resA) {
-        if (resH === null || resA === null || resH === undefined || resA === undefined) return 0;
-        if (tipH === resH && tipA === resA) return 3;
+        function closePlayerModal(event) {
+            document.getElementById('playerModal').style.display = 'none';
+        }
+        function closeModalDirect() {
+            document.getElementById('playerModal').style.display = 'none';
+        }
 
-        let tipDiff = tipH - tipA;
-        let resDiff = resH - resA;
-        if (tipDiff === resDiff) return 2;
+        const allPlayers = [
+            "Andrew Gilding", "Cameron Menzies", "Chris Dobey", "Damon Heta", "Danny Noppert", 
+            "Dave Chisnall", "Dirk van Duijvenbode", "Gary Anderson", "Gerwyn Price", "Gian van Veen", 
+            "James Wade", "Jermaine Wattimena", "Joe Cullen", "Jonny Clayton", "Josh Rock", 
+            "Kevin Doets", "Krzysztof Ratajski", "Luke Humphries", "Luke Littler", "Luke Woodhouse", 
+            "Michael van Gerwen", "Nathan Aspinall", "Niels Zonneveld", "Niko Springer", "Rob Cross", 
+            "Ross Smith", "Ryan Joyce", "Ryan Searle", "Sebastian Bialecki", "Stephen Bunting", 
+            "Wessel Nijman", "William O'Connor"
+        ].sort();
 
-        let tipTendency = tipH > tipA ? 'home' : (tipH < tipA ? 'away' : 'draw');
-        let resTendency = resH > resA ? 'home' : (resH < resA ? 'draw' : 'away');
-        if (tipTendency === resTendency) return 1;
+        let tournamentData = {
+            r1_tue: Array(8).fill(null).map((_, i) => ({ id: `r1_tue_${i}`, date: "Di, 29.09. • 19:15", status: "Ausstehend", p1: "Noch offen", p2: "Noch offen", sets: "" })),
+            af: Array(8).fill(null).map((_, i) => ({ id: `af_${i}`, date: "Mi/Do • 19:15", status: "Ausstehend", p1: "Noch offen", p2: "Noch offen", sets: "" })),
+            vf: Array(4).fill(null).map((_, i) => ({ id: `vf_${i}`, date: "Do • 21:15", status: "Ausstehend", p1: "Noch offen", p2: "Noch offen", sets: "" })),
+            hf: Array(2).fill(null).map((_, i) => ({ id: `hf_${i}`, date: "Freitag • 20:00", status: "Ausstehend", p1: "Noch offen", p2: "Noch offen", sets: "" })),
+            fin: [{ id: `fin_0`, date: "Samstag • 21:00", status: "Ausstehend", p1: "Noch offen", p2: "Noch offen", sets: "" }]
+        };
 
-        return 0;
-    }
+        function filterRound(roundId, btnElement) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
 
-    function openLeaderboardModal() {
-        let scores = {};
-        ['Langen', 'Kokser'].forEach(p => {
-            scores[p] = { points: 0, exact: 0 };
-        });
+            let sections = ['sec', 'af', 'vf', 'hf', 'fin'];
+            sections.forEach(sec => {
+                let el = document.getElementById('section-' + sec);
+                if (el) {
+                    if (roundId === 'all' || roundId === sec) {
+                        el.style.display = 'block';
+                    } else {
+                        el.style.display = 'none';
+                    }
+                }
+            });
+        }
 
-        Object.values(leagueData.matches).forEach(matchList => {
-            if (!Array.isArray(matchList)) return;
-            matchList.forEach(m => {
-                if (!m.match_id) return;
-                let hasRes = m.homeScore !== undefined && m.homeScore !== null && m.awayScore !== undefined && m.awayScore !== null;
-                if (!hasRes) return;
+        function populatePlayerDropdowns() {
+            let p1Select = document.getElementById('admin-p1-select');
+            let p2Select = document.getElementById('admin-p2-select');
+            
+            allPlayers.forEach(player => {
+                p1Select.innerHTML += `<option value="${player}">${player}</option>`;
+                p2Select.innerHTML += `<option value="${player}">${player}</option>`;
+            });
+        }
 
-                let matchTips = allTips.filter(t => t.match_id === m.match_id);
-                matchTips.forEach(t => {
-                    if (scores[t.player_name]) {
-                        let pts = calculatePoints(t.home_tip, t.away_tip, m.homeScore, m.awayScore);
-                        scores[t.player_name].points += pts;
-                        if (pts === 3) scores[t.player_name].exact++;
+        function calculateMatchStats(setsString) {
+            if (!setsString || !setsString.trim()) {
+                return { s1: 0, s2: 0, l1: 0, l2: 0 };
+            }
+            let parts = setsString.split(',');
+            let s1 = 0, s2 = 0, l1 = 0, l2 = 0;
+
+            parts.forEach(part => {
+                let cleanPart = part.trim();
+                if (cleanPart.includes('-')) {
+                    let scores = cleanPart.split('-');
+                    let leg1 = parseInt(scores[0]) || 0;
+                    let leg2 = parseInt(scores[1]) || 0;
+                    l1 += leg1;
+                    l2 += leg2;
+                    if (leg1 > leg2) s1++;
+                    else if (leg2 > leg1) s2++;
+                }
+            });
+            return { s1, s2, l1, l2 };
+        }
+
+        async function loadDataFromSupabase() {
+            let { data, error } = await supabaseClient.from(TABLE_NAME).select('*');
+            
+            if (error) {
+                console.error('Fehler beim Laden:', error);
+                return;
+            }
+
+            if (data && data.length > 0) {
+                data.forEach(row => {
+                    if (tournamentData[row.round_key]) {
+                        tournamentData[row.round_key][row.match_index] = {
+                            id: row.id,
+                            date: row.match_date,
+                            status: row.status,
+                            p1: row.p1,
+                            p2: row.p2,
+                            sets: row.sets
+                        };
                     }
                 });
-            });
-        });
-
-        let sorted = Object.entries(scores).sort((a, b) => b[1].points - a[1].points);
-        let tbody = document.getElementById('leaderboardTableBody');
-        tbody.innerHTML = '';
-
-        sorted.forEach(([player, data], idx) => {
-            let tr = document.createElement('tr');
-            let rankIcon = idx === 0 ? '👑' : `${idx + 1}.`;
-            if (idx === 0) tr.classList.add('rank-first');
-
-            tr.innerHTML = `
-                <td><strong>${rankIcon}</strong></td>
-                <td><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${playerConfigs[player].color}; margin-right:5px;"></span>${player}</td>
-                <td style="text-align: center;">${data.exact}x exakt</td>
-                <td style="text-align: center; font-weight: bold; color: var(--bayern-bright-red);">${data.points} Pkt.</td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        document.getElementById('leaderboardModal').style.display = 'flex';
-    }
-
-    function closeLeaderboardModal() {
-        document.getElementById('leaderboardModal').style.display = 'none';
-    }
-
-    function renderMatchdayTable() {
-        let tbody = document.getElementById('matchdayTableBody');
-        tbody.innerHTML = '';
-        let existingMatches = leagueData.matches[leagueData.currentMatchday] || [];
-
-        existingMatches.forEach((m, idx) => {
-            let hasResult = m.homeScore !== undefined && m.homeScore !== null && m.awayScore !== undefined && m.awayScore !== null;
-            let formattedDate = m.date ? m.date.split('-').reverse().join('.') : '-';
-            let timeStr = m.time ? ` ${m.time} Uhr` : '';
-            
-            let isBayernMatch = (m.home === "FC Bayern München" || m.away === "FC Bayern München");
-
-            let matchId = m.match_id || ("s" + leagueData.currentMatchday + "_" + m.home.trim().toLowerCase().replace(/[^a-z0-9]/g, "_") + "_vs_" + m.away.trim().toLowerCase().replace(/[^a-z0-9]/g, "_"));
-            m.match_id = matchId;
-
-            let resultDisplay = hasResult ? `<strong>${m.homeScore}:${m.awayScore}</strong>` : `<span style="color: var(--text-muted); font-style: italic;">vs</span>`;
-            let scorersText = m.bayernScorers || m.scorers || "";
-            if (hasResult && scorersText.trim() !== "") {
-                resultDisplay += `<div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 2px;">⚽ ${scorersText}</div>`;
-            }
-
-            let matchTips = allTips.filter(t => t.match_id === matchId);
-            let tipsHtml = `<div class="tips-container">`;
-            matchTips.forEach(t => {
-                let cfg = playerConfigs[t.player_name] || { color: '#fff', bg: '#333' };
-                let ptsStr = "";
-                if (hasResult) {
-                    let pts = calculatePoints(t.home_tip, t.away_tip, m.homeScore, m.awayScore);
-                    ptsStr = ` (${pts}p)`;
+            } else {
+                for (let roundKey in tournamentData) {
+                    tournamentData[roundKey].forEach((m, idx) => {
+                        supabaseClient.from(TABLE_NAME).insert({
+                            id: m.id,
+                            round_key: roundKey,
+                            match_index: idx,
+                            match_date: m.date,
+                            status: m.status,
+                            p1: m.p1,
+                            p2: m.p2,
+                            sets: m.sets
+                        }).then();
+                    });
                 }
-                tipsHtml += `<span class="tip-badge" style="background:${cfg.bg}; color:${cfg.color}; border:1px solid ${cfg.border};">${t.player_name}: ${t.home_tip}:${t.away_tip}${ptsStr}</span>`;
-            });
-            tipsHtml += `</div>`;
-
-            let tr = document.createElement('tr');
-            if (isBayernMatch) tr.classList.add('bayern-match-row');
-
-            let homeCellContent = getTeamHtml(m.home, true);
-            let awayCellContent = getTeamHtml(m.away, false);
-
-            if (m.home === "FC Bayern München") {
-                homeCellContent = `<span class="bayern-highlight">${homeCellContent}</span>`;
             }
-            if (m.away === "FC Bayern München") {
-                awayCellContent = `<span class="bayern-highlight">${awayCellContent}</span>`;
-            }
+            renderAll();
+        }
 
-            tr.innerHTML = `
-                <td style="font-size: 0.8rem; color: #ffffff;">${formattedDate}${timeStr}</td>
-                <td style="text-align: right;">${homeCellContent}</td>
-                <td style="text-align: center;">${resultDisplay}</td>
-                <td>${awayCellContent}</td>
-                <td style="text-align: center;">
-                    <button class="matchday-btn" style="font-size: 0.7rem; padding: 4px 8px;" onclick="requestTipAuthentication('${matchId}', '${m.home.replace(/'/g, "\\'")}', '${m.away.replace(/'/g, "\\'")}')">🎯 Tippen</button>
-                    ${tipsHtml}
-                </td>
-                <td style="text-align: center;">${isAdmin ? `<button class="btn-danger" onclick="deleteMatchResult(${idx})">✕</button>` : ''}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
+        function renderRound(roundKey, gridId, roundTitle) {
+            let matches = tournamentData[roundKey];
+            let grid = document.getElementById(gridId);
+            if (!grid) return;
+            grid.innerHTML = '';
 
-    function renderTable() {
-        let tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
-        let stats = {};
-        leagueData.teams.forEach(t => { stats[t] = { name: t, played: 0, won: 0, draw: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, points: 0 }; });
-
-        Object.values(leagueData.matches).forEach(matchList => {
-            if (!Array.isArray(matchList)) return;
-            matchList.forEach(m => {
-                if (m.homeScore === undefined || m.homeScore === null || m.awayScore === undefined || m.awayScore === null) return;
-                let h = m.home, a = m.away;
-                if (!stats[h] || !stats[a]) return;
-                stats[h].played++; stats[a].played++;
-                stats[h].goalsFor += m.homeScore; stats[h].goalsAgainst += m.awayScore;
-                stats[a].goalsFor += m.awayScore; stats[a].goalsAgainst += m.homeScore;
-                if (m.homeScore > m.awayScore) { stats[h].won++; stats[h].points += 3; stats[a].lost++; }
-                else if (m.homeScore < m.awayScore) { stats[a].won++; stats[a].points += 3; stats[h].lost++; }
-                else { stats[h].draw++; stats[h].points += 1; stats[a].draw++; stats[a].points += 1; }
-            });
-        });
-
-        let sorted = Object.values(stats).sort((a, b) => b.points !== a.points ? b.points - a.points : (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst));
-        sorted.forEach((s, idx) => {
-            let tr = document.createElement('tr');
-            if (idx === 0) tr.classList.add('rank-first');
-            else if (idx >= sorted.length - 3) tr.classList.add('rank-last');
-            if (s.name === "FC Bayern München") tr.classList.add('bayern-team-row');
-            let diff = s.goalsFor - s.goalsAgainst;
-
-            let teamCellHtml = getTeamHtml(s.name, false);
-
-            tr.innerHTML = `<td><strong>${idx + 1}.</strong></td><td>${teamCellHtml}</td><td style="text-align: center;">${s.played}</td><td style="text-align: center;">${s.won}</td><td style="text-align: center;">${s.draw}</td><td style="text-align: center;">${s.lost}</td><td style="text-align: center;">${s.goalsFor}:${s.goalsAgainst}</td><td style="text-align: center;">${diff > 0 ? '+' : ''}${diff}</td><td style="text-align: center; font-weight: bold;">${s.points}</td>`;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function renderBayernStats() {
-        let played = 0, won = 0, draw = 0, lost = 0, goalsFor = 0, goalsAgainst = 0, points = 0;
-        let scorerMap = {};
-        Object.values(leagueData.matches).forEach(matchList => {
-            if (!Array.isArray(matchList)) return;
-            matchList.forEach(m => {
-                let isHome = m.home === "FC Bayern München", isAway = m.away === "FC Bayern München";
-                if (!isHome && !isAway) return;
-                if (m.homeScore !== undefined && m.homeScore !== null && m.awayScore !== undefined && m.awayScore !== null) {
-                    played++;
-                    let myG = isHome ? m.homeScore : m.awayScore, oppG = isHome ? m.awayScore : m.homeScore;
-                    goalsFor += myG; goalsAgainst += oppG;
-                    if (myG > oppG) { won++; points += 3; } else if (myG === oppG) { draw++; points += 1; } else { lost++; }
-                    let scText = m.bayernScorers || m.scorers;
-                    if (scText) {
-                        scText.split(',').forEach(p => {
-                            p = p.trim();
-                            let matchNum = p.match(/\((\d+)\)/);
-                            let count = matchNum ? parseInt(matchNum[1]) : 1;
-                            let name = p.replace(/\s*\(\d+\)/, '').trim();
-                            if (name) scorerMap[name] = (scorerMap[name] || 0) + count;
-                        });
-                    }
-                }
-            });
-        });
-        document.getElementById('bayernStatsGrid').innerHTML = `
-            <div class="stat-card"><div class="stat-label">Spiele</div><div class="stat-value">${played}</div></div>
-            <div class="stat-card"><div class="stat-label">Siege</div><div class="stat-value" style="color: #3fb950;">${won}</div></div>
-            <div class="stat-card"><div class="stat-label">Remis</div><div class="stat-value" style="color: #e3b341;">${draw}</div></div>
-            <div class="stat-card"><div class="stat-label">Niederlagen</div><div class="stat-value" style="color: #f85149;">${lost}</div></div>
-            <div class="stat-card"><div class="stat-label">Tore</div><div class="stat-value">${goalsFor}:${goalsAgainst}</div></div>
-            <div class="stat-card"><div class="stat-label">Punkte</div><div class="stat-value">${points}</div></div>
-        `;
-        let scorersBody = document.getElementById('bayernScorersBody');
-        scorersBody.innerHTML = '';
-        let sortedScorers = Object.entries(scorerMap).sort((a, b) => b[1] - a[1]);
-        
-        if (sortedScorers.length === 0) {
-            scorersBody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: var(--text-muted); padding: 10px;">Noch keine Torschützen eingetragen.</td></tr>`;
-        } else {
-            sortedScorers.forEach(([player, goals]) => {
-                let pKey = player.trim().toLowerCase();
-                let photoUrl = playerPhotos[pKey];
+            matches.forEach((m, index) => {
+                let isPlayed = m.status !== 'Ausstehend' && m.sets && m.sets.trim() !== '';
+                let stats = calculateMatchStats(m.sets);
                 
-                let avatarHtml = photoUrl 
-                    ? `<img src="${photoUrl}" alt="${player}" class="player-mini-avatar">` 
-                    : `<div class="player-mini-avatar" style="display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:var(--text-muted);">⚽</div>`;
+                let p1IsWinner = (m.status === 'Beendet' && stats.s1 > stats.s2);
+                let p2IsWinner = (m.status === 'Beendet' && stats.s2 > stats.s1);
 
-                scorersBody.innerHTML += `
-                    <td>
-                        <div class="scorer-row-content">
-                            ${avatarHtml}
-                            <span>${player}</span>
-                        </div>
-                    </td>
-                    <td style="text-align: center; font-weight: bold; color: var(--bayern-bright-red);">${goals}</td>
+                let p1RowClass = p1IsWinner ? 'player-row winner' : 'player-row';
+                let p2RowClass = p2IsWinner ? 'player-row winner' : 'player-row';
+
+                let s1Class = isPlayed ? (p1IsWinner ? 'sets-score winner-score' : 'sets-score') : 'sets-score empty';
+                let s2Class = isPlayed ? (p2IsWinner ? 'sets-score winner-score' : 'sets-score') : 'sets-score empty';
+                
+                let badgeHtml = m.status === 'Live' 
+                    ? `<span class="time-badge" style="background:rgba(239,68,68,0.2); color:#ef4444; border-color:rgba(239,68,68,0.4)">LIVE</span>` 
+                    : (m.status === 'Beendet' ? `<span>Beendet</span>` : `<span class="time-badge">${m.date}</span>`);
+
+                let cardStyle = (roundKey === 'fin') ? 'border-color: #f59e0b;' : '';
+                let headerText = (roundKey === 'fin') ? '🏆 Finale' : `${roundTitle} ${index + 1}`;
+
+                let s1Text = isPlayed ? stats.s1 : '-';
+                let s2Text = isPlayed ? stats.s2 : '-';
+
+                let detailsText = isPlayed 
+                    ? `Sätze: ${m.sets}&nbsp;&nbsp;|&nbsp;&nbsp;Legs: ${stats.l1}-${stats.l2}` 
+                    : 'Status: Ausstehend';
+
+                grid.innerHTML += `
+                    <div class="match-card" style="${cardStyle}">
+                        <div class="match-header"><span>${headerText}</span>${badgeHtml}</div>
+                        <div class="${p1RowClass}"><span class="player-name" onclick="openPlayerModal('${m.p1}')">${m.p1}</span><span class="${s1Class}">${s1Text}</span></div>
+                        <div class="${p2RowClass}"><span class="player-name" onclick="openPlayerModal('${m.p2}')">${m.p2}</span><span class="${s2Class}">${s2Text}</span></div>
+                        <div class="legs-detail"><span>${detailsText}</span></div>
+                    </div>
                 `;
             });
         }
-    }
 
-    function renderInputForm() {
-        let container = document.getElementById('matchInputsContainer');
-        container.innerHTML = '';
-        let existingMatches = leagueData.matches[leagueData.currentMatchday] || [];
-        existingMatches.forEach((m, idx) => {
-            let card = document.createElement('div');
-            card.className = 'match-input-card';
-            card.innerHTML = `
-                <div style="font-size: 0.8rem; color: var(--bayern-bright-red); font-weight: bold; margin-bottom: 8px;">Partie ${idx + 1} (${m.home} vs ${m.away})</div>
-                <div class="form-grid">
-                    <div class="form-group"><label>Tore Heim</label><input type="number" id="hs_${idx}" class="form-control" value="${m.homeScore !== undefined && m.homeScore !== null ? m.homeScore : ''}" min="0"></div>
-                    <div class="form-group"><label>Tore Gast</label><input type="number" id="as_${idx}" class="form-control" value="${m.awayScore !== undefined && m.awayScore !== null ? m.awayScore : ''}" min="0"></div>
-                    <div class="form-group" style="grid-column: span 2;"><label>Torschützen</label><input type="text" id="bs_${idx}" class="form-control" value="${m.bayernScorers || m.scorers || ''}"></div>
-                </div>
-            `;
-            container.appendChild(card);
-        });
-    }
+        function renderAll() {
+            renderRound('r1_tue', 'r1_tue-grid', '1. Runde');
+            renderRound('af', 'af-grid', 'Achtelfinale');
+            renderRound('vf', 'vf-grid', 'Viertelfinale');
+            renderRound('hf', 'hf-grid', 'Halbfinale');
+            renderRound('fin', 'fin-grid', 'Endspiel');
+        }
 
-    async function saveAllMatches() {
-        let existingMatches = leagueData.matches[leagueData.currentMatchday] || [];
-        for (let idx = 0; idx < existingMatches.length; idx++) {
-            let hsVal = document.getElementById(`hs_${idx}`).value;
-            let asVal = document.getElementById(`as_${idx}`).value;
-            let bsInput = document.getElementById(`bs_${idx}`);
-            if (hsVal !== '' && asVal !== '') {
-                existingMatches[idx].homeScore = parseInt(hsVal);
-                existingMatches[idx].awayScore = parseInt(asVal);
-                if (bsInput) existingMatches[idx].bayernScorers = existingMatches[idx].scorers = bsInput.value;
+        function updateMatchSelect() {
+            let roundKey = document.getElementById('admin-round').value;
+            let matchSelect = document.getElementById('admin-match-select');
+            let matches = tournamentData[roundKey];
+
+            matchSelect.innerHTML = '';
+            matches.forEach((m, i) => {
+                let opt = document.createElement('option');
+                opt.value = i;
+                opt.text = `${i + 1}: ${m.p1} vs ${m.p2}`;
+                matchSelect.appendChild(opt);
+            });
+            loadMatchData();
+        }
+
+        function loadMatchData() {
+            let roundKey = document.getElementById('admin-round').value;
+            let matchIndex = document.getElementById('admin-match-select').value;
+            let m = tournamentData[roundKey][matchIndex];
+
+            document.getElementById('admin-date').value = m.date;
+            document.getElementById('admin-status').value = m.status;
+            document.getElementById('admin-p1').value = m.p1;
+            document.getElementById('admin-p2').value = m.p2;
+            document.getElementById('admin-setdetails').value = m.sets || "";
+            
+            document.getElementById('admin-p1-select').value = "";
+            document.getElementById('admin-p2-select').value = "";
+        }
+
+        async function saveMatch() {
+            let roundKey = document.getElementById('admin-round').value;
+            let matchIndex = document.getElementById('admin-match-select').value;
+            let m = tournamentData[roundKey][matchIndex];
+
+            m.date = document.getElementById('admin-date').value;
+            m.status = document.getElementById('admin-status').value;
+            m.p1 = document.getElementById('admin-p1').value;
+            m.p2 = document.getElementById('admin-p2').value;
+            m.sets = document.getElementById('admin-setdetails').value;
+
+            let { error } = await supabaseClient.from(TABLE_NAME).upsert({
+                id: m.id,
+                round_key: roundKey,
+                match_index: parseInt(matchIndex),
+                match_date: m.date,
+                status: m.status,
+                p1: m.p1,
+                p2: m.p2,
+                sets: m.sets
+            });
+
+            if (error) {
+                alert("❌ Fehler beim Speichern: " + error.message);
             } else {
-                delete existingMatches[idx].homeScore; delete existingMatches[idx].awayScore; delete existingMatches[idx].bayernScorers; delete existingMatches[idx].scorers;
+                renderAll();
+                updateMatchSelect();
+                alert("✅ Erfolgreich in Supabase gespeichert!");
             }
         }
-        await saveToCloud();
-        renderAll();
-        alert("Ergebnisse erfolgreich gespeichert!");
-    }
 
-    async function deleteMatchResult(idx) {
-        let existingMatches = leagueData.matches[leagueData.currentMatchday];
-        if (existingMatches && existingMatches[idx]) {
-            delete existingMatches[idx].homeScore; delete existingMatches[idx].awayScore; delete existingMatches[idx].bayernScorers; delete existingMatches[idx].scorers;
-            await saveToCloud();
-            renderAll();
+        function checkPassword() {
+            let pw = document.getElementById('admin-pw').value;
+            if (pw === '1919') {
+                document.getElementById('admin-login').style.display = 'none';
+                document.getElementById('admin-content').style.display = 'block';
+                updateMatchSelect();
+            } else {
+                let err = document.getElementById('login-error');
+                err.style.display = 'block';
+            }
         }
-    }
 
-    // Init beim Start
-    loadFromCloud();
-</script>
+        window.onload = function() {
+            populatePlayerDropdowns();
+            loadDataFromSupabase();
 
+            supabaseClient.channel('public:wgp_matches_2026')
+                .on('postgres_changes', { event: '*', schema: 'public', table: TABLE_NAME }, payload => {
+                    loadDataFromSupabase();
+                })
+                .subscribe();
+        };
+    </script>
 </body>
 </html>
